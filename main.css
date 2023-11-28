@@ -1,0 +1,64 @@
+* {
+  font-family: Arial, sans-serif;
+
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  height: 100vh;
+}
+
+.grid-header {
+  font-size: 1.25rem;
+}
+
+.canvas-element-scale-wrapper {
+  display: flex;
+  /* justify-content: center; */
+}
+
+#grid-canvas-element {
+  outline: 1px solid;
+  image-rendering: pixelated;
+  transform: scale(15, 15);
+}
+
+#controls-container {
+  position: absolute;
+  bottom: 40px;
+  display: flex;
+  background-color: whitesmoke;
+  border-radius: 9999px;
+  padding: 10px 15px;
+  gap: 10px;
+  box-shadow: rgba(240, 46, 170, 0.4) 0px 5px, rgba(240, 46, 170, 0.3) 0px 10px,
+    rgba(240, 46, 170, 0.2) 0px 15px, rgba(240, 46, 170, 0.1) 0px 20px,
+    rgba(240, 46, 170, 0.05) 0px 25px;
+}
+
+.control-option {
+  width: 25px;
+  height: 25px;
+  border: 2px solid rgb(220, 220, 220);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.control-option.selected {
+  border: 2px solid rgb(60, 60, 60);
+}
+.control-option.selected:hover {
+  border: 2px solid rgb(60, 60, 60);
+}
+.control-option:hover {
+  width: 25px;
+  height: 25px;
+  border: 2px solid rgb(160, 160, 160);
+  border-radius: 999px;
+}
