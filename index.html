@@ -11,14 +11,20 @@
     <script defer src="src/grid.js"></script>
     <script defer src="src/gridEditor.js"></script>
     <script defer src="src/controls.js"></script>
+    <script defer src="src/patterns.js"></script>
     <script defer src="init.js"></script>
   </head>
   <body>
     <main>
-      <div class="canvas-element-scale-wrapper">
-        <canvas id="grid-canvas-element"></canvas>
+      <div class="canvas-container">
+        <div class="canvas-element-scale-wrapper">
+          <canvas id="grid-canvas-element"></canvas>
+        </div>
       </div>
-      <div id="controls-container"></div>
+      <div class="controls-container">
+        <div id="colors-palette"></div>
+        <div id="save-button"></div>
+      </div>
     </main>
   </body>
 </html>

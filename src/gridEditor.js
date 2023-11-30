@@ -4,8 +4,6 @@ class GridEditor {
     this.grid = grid;
     this.controls = controls;
 
-    console.log("this.selectedColor", this.selectedColor);
-
     this.context = this.canvas.getContext("2d");
 
     this.previousPixel = { x: null, y: null, data: null };
@@ -50,7 +48,9 @@ class GridEditor {
   }
 
   #isEmptyPixel(pixel) {
-    if (pixel[0] === 0 && pixel[1] === 0 && pixel[2] === 0) {
+    const isTransparent = pixel[3] === 0;
+    const isWhite = pixel[0] === 255 && pixel[1] === 255 && pixel[2] === 255;
+    if (isTransparent || isWhite) {
       return true;
     }
     return false;
@@ -121,10 +121,24 @@ class GridEditor {
     });
   }
 
+  insertPattern(pixel, basePosition, offsets) {
+    offsets.forEach((offset) => {
+      this.insertPixelAt(pixel, {
+        x: basePosition.x + offset.x,
+        y: basePosition.y + offset.y,
+      });
+    });
+  }
+  #insertAmogusPattern(pixel, { x, y }) {
+    this.insertPattern(pixel, { x, y }, AMOGUS_PATTERN);
+  }
+
   #handleMouseDown() {
     this.canvas.addEventListener("mousedown", (event) => {
       const { mouseX, mouseY } = this.#getMousePosition(event);
       const clickedPixel = this.controls.getSelectedColor();
+
+      // this.#insertAmogusPattern(clickedPixel, { x: mouseX, y: mouseY });
 
       this.insertPixelAt(
         [

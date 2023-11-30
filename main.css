@@ -11,7 +11,6 @@ main {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
   height: 100vh;
 }
 
@@ -21,28 +20,47 @@ main {
 
 .canvas-element-scale-wrapper {
   display: flex;
-  /* justify-content: center; */
 }
 
 #grid-canvas-element {
-  outline: 1px solid;
   image-rendering: pixelated;
   transform: scale(15, 15);
+  outline: 0.5px solid;
 }
 
-#controls-container {
+/* controls */
+.controls-container {
+  gap: 10px;
   position: absolute;
   bottom: 40px;
+  display: flex;
+}
+
+#save-button {
+  background-color: whitesmoke;
+  background-image: url(./save-icon.png);
+  background-position: center;
+  background-size: 60%;
+  background-repeat: no-repeat;
+  width: 45px;
+  gap: 10px;
+  border: 2px solid rgb(220, 220, 220);
+  transition: transform 0.2s ease-in-out;
+  cursor: pointer;
+  border-radius: 9999px;
+}
+#save-button:hover {
+  transform: rotate(10deg);
+}
+
+#colors-palette {
   display: flex;
   background-color: whitesmoke;
   border-radius: 9999px;
   padding: 10px 15px;
   gap: 10px;
-  box-shadow: rgba(240, 46, 170, 0.4) 0px 5px, rgba(240, 46, 170, 0.3) 0px 10px,
-    rgba(240, 46, 170, 0.2) 0px 15px, rgba(240, 46, 170, 0.1) 0px 20px,
-    rgba(240, 46, 170, 0.05) 0px 25px;
+  border: 2px solid rgb(220, 220, 220);
 }
-
 .control-option {
   width: 25px;
   height: 25px;

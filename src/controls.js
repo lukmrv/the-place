@@ -1,12 +1,14 @@
 class Controls {
-  constructor(controlsContainer, colorSet) {
-    this.controlsContainer = controlsContainer;
+  constructor({ colorPaletteContainer, saveButtonElement }, grid, colorSet) {
+    this.colorPaletteContainer = colorPaletteContainer;
+    this.saveButtonElement = saveButtonElement;
     this.colorSet = colorSet;
+
+    this.grid = grid;
 
     this.selectedColor = Object.values(colorSet)[0];
 
-    console.log(1, this.selectedColor);
-    this.populateControls();
+    this.initControls();
   }
 
   getSelectedColor() {
@@ -36,7 +38,7 @@ class Controls {
 
     controlElement.addEventListener("click", (event) => {
       // Remove 'selected' class from all color options
-      this.controlsContainer
+      this.colorPaletteContainer
         .querySelectorAll(".control-option")
         .forEach((option) => option.classList.remove("selected"));
 
@@ -46,14 +48,18 @@ class Controls {
       this.selectedColor = colorOption;
     });
 
-    this.controlsContainer.appendChild(controlElement);
+    this.colorPaletteContainer.appendChild(controlElement);
   }
 
-  populateControls() {
+  initControls() {
     Object.keys(this.colorSet)
       .filter((colorOption) => !colorOption.includes("_"))
       .forEach((colorOption) =>
         this.createColorOption(this.colorSet[colorOption])
       );
+
+    this.saveButtonElement.addEventListener("click", () =>
+      this.grid.saveData()
+    );
   }
 }
