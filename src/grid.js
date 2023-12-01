@@ -72,7 +72,6 @@ class Grid {
       if (imageDataString) {
         this.imageData = this.#parseLocalStorageData(imageDataString);
       } else {
-        console.log(this.DEFAULT_GRID_WIDTH);
         this.imageData = this.#createImageData(
           this.DEFAULT_GRID_WIDTH,
           this.DEFAULT_GRID_HEIGHT

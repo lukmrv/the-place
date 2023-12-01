@@ -123,14 +123,14 @@ class GridEditor {
 
   insertPattern(pixel, basePosition, offsets) {
     offsets.forEach((offset) => {
-      this.insertPixelAt(pixel, {
+      this.insertPixelAt(offset.color || pixel, {
         x: basePosition.x + offset.x,
         y: basePosition.y + offset.y,
       });
     });
   }
   #insertAmogusPattern(pixel, { x, y }) {
-    this.insertPattern(pixel, { x, y }, AMOGUS_PATTERN);
+    this.insertPattern(pixel, { x, y }, TREE_PATTERN);
   }
 
   #handleMouseDown() {
