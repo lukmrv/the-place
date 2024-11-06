@@ -13,7 +13,23 @@
     - need to have achivement badges,
         like a "TEAM PLAYER" - completed a pattern of the day (not solo)
         "SOLO WARRIOR" - completed a pattern of the day solo (in burst? possible?)
+        "BURST CRUISER" - placed more than 100 pixel in total in burst mode
+        "PRO BURSTer" - placed more than 20 pixels in a burst
         "BURST KING" - completed a pattern in a single burst
 
+
+Stats for:
+
+completed patterns
+- team
+- solo
+
+placed pixels
+- total
+- in bursts
+
+Bursts
+- most pixels in a single burst
+- number of bursts
 
 there are only two visilble HTML elements - colors picker and header with menu (chat / settings / etc)
