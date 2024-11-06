@@ -17,12 +17,10 @@
 
 	let zoom = $state(5);
 	let selectedColor = $state(Object.keys(colorsPalette)[0] as keyof typeof colorsPalette);
+	let transform = $state({ x: 0, y: 0 });
 
 	let isDragging = false;
 	let pixelBuffer: Pixel = { offset: null, color: null };
-
-	let mouseDragOffset = $state<{ x: number | null; y: number | null }>({ x: null, y: null });
-	let transform = $state({ x: 0, y: 0 });
 
 	onMount(() => {
 		(async () => {
@@ -81,16 +79,6 @@
 		imageData.data[offset * 4 + 3] = a;
 
 		context.putImageData(imageData, 0, 0);
-	};
-
-	const handleMouseDown = async (e: MouseEvent) => {
-		const onClickX = e.clientX;
-		const onClickY = e.clientY;
-
-		mouseDragOffset = { x: onClickX, y: onClickY };
-	};
-	const handleMouseUp = async (e: MouseEvent) => {
-		mouseDragOffset = { x: null, y: null };
 	};
 
 	const handleClick = async (e: MouseEvent) => {
@@ -170,8 +158,6 @@
 				{height}
 				bind:this={canvas}
 				onclick={handleClick}
-				onmousedown={handleMouseDown}
-				onmouseup={handleMouseUp}
 				onmousemove={handleMove}
 				onmouseleave={handleLeave}
 				onwheel={handleScroll}
