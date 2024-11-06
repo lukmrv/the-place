@@ -6,6 +6,8 @@
 	import ColorOption from './ColorOption.svelte';
 	import { webSocketManager } from '../websocket-manager';
 
+	type Pixel = { offset: number | null; color: keyof typeof colorsPalette | null };
+
 	let ws: WebSocket;
 
 	let canvas: HTMLCanvasElement;
@@ -13,10 +15,14 @@
 	let imageData: ImageData;
 	let rect: DOMRect;
 
+	let zoom = $state(5);
 	let selectedColor = $state(Object.keys(colorsPalette)[0] as keyof typeof colorsPalette);
 
-	type Pixel = { offset: number | null; color: keyof typeof colorsPalette | null };
+	let isDragging = false;
 	let pixelBuffer: Pixel = { offset: null, color: null };
+
+	let mouseDragOffset = $state<{ x: number | null; y: number | null }>({ x: null, y: null });
+	let transform = $state({ x: 0, y: 0 });
 
 	onMount(() => {
 		(async () => {
@@ -25,8 +31,8 @@
 			context.putImageData(imageData, 0, 0);
 		})();
 
-		rect = canvas.getBoundingClientRect();
 		context = canvas.getContext('2d')!;
+		context.imageSmoothingEnabled = false;
 
 		ws = webSocketManager();
 		ws.onmessage = (e) => {
@@ -44,15 +50,16 @@
 	};
 
 	const getHoveredPixelColor = (offset: number) => {
-		const r = imageData.data[offset * 4];
-		const g = imageData.data[offset * 4 + 1];
-		const b = imageData.data[offset * 4 + 2];
-		const a = imageData.data[offset * 4 + 3];
+		const r = imageData.data?.[offset * 4];
+		const g = imageData.data?.[offset * 4 + 1];
+		const b = imageData.data?.[offset * 4 + 2];
+		const a = imageData.data?.[offset * 4 + 3];
 
 		return mapPixelDataToColor({ r, g, b, a });
 	};
 
 	const getPixelOffset = (event: MouseEvent) => {
+		rect = canvas.getBoundingClientRect();
 		const scaleX = canvas.width / rect.width;
 		const scaleY = canvas.height / rect.height;
 		const pixelX = (event.clientX - rect.left) * scaleX;
@@ -64,6 +71,7 @@
 
 		return offset;
 	};
+
 	const insertPixel = (color: keyof typeof colorsPalette, offset: number) => {
 		const [r, g, b, a] = colorsPalette[color];
 
@@ -74,7 +82,22 @@
 
 		context.putImageData(imageData, 0, 0);
 	};
+
+	const handleMouseDown = async (e: MouseEvent) => {
+		const onClickX = e.clientX;
+		const onClickY = e.clientY;
+
+		mouseDragOffset = { x: onClickX, y: onClickY };
+	};
+	const handleMouseUp = async (e: MouseEvent) => {
+		mouseDragOffset = { x: null, y: null };
+	};
+
 	const handleClick = async (e: MouseEvent) => {
+		if (isDragging) {
+			return;
+		}
+
 		const offset = getPixelOffset(e);
 		insertPixel(selectedColor, offset);
 		const [r, g, b, a] = colorsPalette[selectedColor];
@@ -87,6 +110,21 @@
 		await setPixel(offset, r, g, b, a);
 	};
 	const handleMove = (e: MouseEvent) => {
+		if (e.buttons === 1) {
+			isDragging = true;
+
+			const zoomFactor = 1 / zoom;
+			transform.x += e.movementX * zoomFactor;
+			transform.y += e.movementY * zoomFactor;
+
+			if (pixelBuffer.color && pixelBuffer.offset) {
+				insertPixel(pixelBuffer.color, pixelBuffer.offset);
+			}
+			return;
+		} else {
+			isDragging = false;
+		}
+
 		const offset = getPixelOffset(e);
 		const hoveredPixelColor = getHoveredPixelColor(offset);
 		if (offset !== pixelBuffer.offset) {
@@ -112,18 +150,37 @@
 	const selectColor = (color: keyof typeof colorsPalette) => {
 		selectedColor = color;
 	};
+
+	const handleScroll = async (e: WheelEvent) => {
+		const dir = Math.sign(e.deltaY);
+		zoom -= dir;
+		zoom = Math.max(5, Math.min(30, zoom));
+	};
 </script>
 
 <!-- svelte-ignore element_invalid_self_closing_tag -->
-<canvas
-	{width}
-	{height}
-	bind:this={canvas}
-	onclick={handleClick}
-	onmousemove={handleMove}
-	onmouseleave={handleLeave}
-	style="image-rendering: pixelated; transform: scale(6, 6); outline: 0.5px solid;"
-/>
+<div class="flex h-full w-full items-center justify-center overflow-hidden bg-gray-100">
+	<div style={`transform: scale(${zoom}, ${zoom});`}>
+		<div
+			class="overflow-hidden"
+			style={`transform: translate(${transform.x}px, ${transform.y}px);`}
+		>
+			<canvas
+				{width}
+				{height}
+				bind:this={canvas}
+				onclick={handleClick}
+				onmousedown={handleMouseDown}
+				onmouseup={handleMouseUp}
+				onmousemove={handleMove}
+				onmouseleave={handleLeave}
+				onwheel={handleScroll}
+				style="image-rendering: pixelated;"
+				class="bg-white"
+			/>
+		</div>
+	</div>
+</div>
 <div class="absolute bottom-4 z-10 flex gap-2 border-2 border-gray-300 bg-white p-2">
 	{#each Object.keys(colorsPalette) as (keyof typeof colorsPalette)[] as colorOption}
 		<ColorOption
