@@ -4,10 +4,37 @@
 
 	import { webSocketManager } from '../../../websocket-manager';
 	import type { Color, Coordinates, Pixel } from '../types';
-	import { colorsPalette, height, width, treePattern } from '../const';
+	import { colorsPalette, height, width } from '../const';
 	import ColorOption from './ColorOption.svelte';
+	import {
+		car,
+		christmas_tree,
+		create_tree,
+		cross,
+		ghost,
+		heart,
+		infakt_logo,
+		mario,
+		mushroom,
+		pacman,
+		sword
+	} from '../patterns';
 
 	type PatternBuffer = Array<{ offset: number; color: Color }>;
+
+	const patterns = {
+		car,
+		heart,
+		christmas_tree,
+		infakt_logo,
+		pacman,
+		ghost,
+		mario,
+		mushroom,
+		sword,
+		cross,
+		tree: create_tree('autumn') // 805px
+	};
 
 	let ws: WebSocket;
 
@@ -24,9 +51,6 @@
 	let isDragging = false;
 	let pixelBuffer: Pixel | null = null;
 	let dragThreshold: Coordinates | null = null;
-
-	let patternStart = $state<Coordinates | null>(null);
-	let patternEnd = $state<Coordinates | null>(null);
 
 	let patternBuffer: PatternBuffer = [];
 
@@ -120,7 +144,7 @@
 		const centerY = Math.floor(offset / width);
 
 		// Apply pattern
-		for (const { x: dx, y: dy } of treePattern) {
+		for (const { x: dx, y: dy, color: patternColor } of patterns.tree) {
 			const x = centerX + dx;
 			const y = centerY + dy;
 
@@ -128,9 +152,9 @@
 			if (x < 0 || x >= width || y < 0 || y >= height) continue;
 
 			const currentOffset = y * width + x;
-			const [r, g, b, a] = colorsPalette[selectedColor];
+			const [r, g, b, a] = colorsPalette[patternColor];
 
-			insertPixelAt(selectedColor, currentOffset);
+			insertPixelAt(patternColor, currentOffset);
 			ws.send(JSON.stringify({ offset: currentOffset, r, g, b, a }));
 			await setPixel(currentOffset, r, g, b, a);
 		}
@@ -236,7 +260,7 @@
 		}
 
 		// Draw new pattern preview
-		treePattern.forEach(({ x: dx, y: dy }) => {
+		patterns.tree.forEach(({ x: dx, y: dy, color: patternColor }) => {
 			const x = centerX + dx;
 			const y = centerY + dy;
 
@@ -249,8 +273,8 @@
 			// Store original color in buffer
 			patternBuffer.push({ offset: currentOffset, color: currentColor });
 
-			// Draw preview
-			insertPixelAt(selectedColor, currentOffset);
+			// Draw preview using pattern color
+			insertPixelAt(patternColor, currentOffset);
 		});
 	};
 
@@ -275,8 +299,6 @@
 			patternBuffer = [];
 		}
 		pixelBuffer = null;
-		patternStart = null;
-		patternEnd = null;
 	};
 	// set scale factor
 	const handleScroll = async (e: WheelEvent) => {

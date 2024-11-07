@@ -15,3 +15,4 @@ export interface Coordinates {
 
 export type Color = keyof typeof colorsPalette;
 export type Pixel = { offset: number; color: Color };
+export type Pattern = (Coordinates & Pick<Pixel, 'color'>)[];
