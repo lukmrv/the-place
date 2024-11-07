@@ -20,9 +20,8 @@
 		sword
 	} from '../patterns';
 
-	type PatternBuffer = Array<{ offset: number; color: Color }>;
-
 	const patterns = {
+		pixel: null,
 		car,
 		heart,
 		christmas_tree,
@@ -33,7 +32,7 @@
 		mushroom,
 		sword,
 		cross,
-		tree: create_tree('autumn') // 805px
+		tree: create_tree('autumn')
 	};
 
 	let ws: WebSocket;
@@ -46,13 +45,13 @@
 	let zoom = $state(5);
 	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
 	let transform = $state({ x: 0, y: 0 });
-	let isPatternMode = $state(false);
+	let selectedPattern = $state<keyof typeof patterns>('pixel');
+	let saving = $state<boolean>(false);
 
 	let isDragging = false;
 	let pixelBuffer: Pixel | null = null;
+	let patternBuffer: Pixel[] = [];
 	let dragThreshold: Coordinates | null = null;
-
-	let patternBuffer: PatternBuffer = [];
 
 	onMount(() => {
 		(async () => {
@@ -104,6 +103,7 @@
 
 	// mutate imageDataObject
 	const insertPixelAt = (color: Color, offset: number) => {
+		if (saving) return;
 		const [r, g, b, a] = colorsPalette[color];
 		imageData.data[offset * 4] = r;
 		imageData.data[offset * 4 + 1] = g;
@@ -143,8 +143,8 @@
 		const centerX = offset % width;
 		const centerY = Math.floor(offset / width);
 
-		// Apply pattern
-		for (const { x: dx, y: dy, color: patternColor } of patterns.tree) {
+		for (let i = 0; i < patterns[selectedPattern]!.length; i++) {
+			const { x: dx, y: dy, color: patternColor } = patterns[selectedPattern]![i];
 			const x = centerX + dx;
 			const y = centerY + dy;
 
@@ -163,11 +163,13 @@
 	};
 
 	const handleClick = async (e: MouseEvent) => {
-		if (isPatternMode) {
-			savePattern(e);
+		saving = true;
+		if (selectedPattern === 'pixel') {
+			await savePixel(e);
 		} else {
-			savePixel(e);
+			await savePattern(e);
 		}
+		saving = false;
 	};
 
 	const handleMovePixel = (e: MouseEvent) => {
@@ -239,9 +241,10 @@
 
 				// Clear pattern preview when dragging
 				if (patternBuffer.length > 0) {
-					patternBuffer.forEach((pixel) => {
-						insertPixelAt(pixel.color, pixel.offset);
-					});
+					for (let i = 0; i < patternBuffer.length; i++) {
+						const { offset, color } = patternBuffer[i];
+						insertPixelAt(color, offset);
+					}
 					patternBuffer = [];
 				}
 				return;
@@ -253,14 +256,15 @@
 
 		// Restore previous pattern pixels
 		if (patternBuffer.length > 0) {
-			patternBuffer.forEach((pixel) => {
-				insertPixelAt(pixel.color, pixel.offset);
-			});
+			for (let i = 0; i < patternBuffer.length; i++) {
+				const { offset, color } = patternBuffer[i];
+				insertPixelAt(color, offset);
+			}
 			patternBuffer = [];
 		}
 
-		// Draw new pattern preview
-		patterns.tree.forEach(({ x: dx, y: dy, color: patternColor }) => {
+		for (let i = 0; i < patterns[selectedPattern]!.length; i++) {
+			const { x: dx, y: dy, color: patternColor } = patterns[selectedPattern]![i];
 			const x = centerX + dx;
 			const y = centerY + dy;
 
@@ -275,14 +279,14 @@
 
 			// Draw preview using pattern color
 			insertPixelAt(patternColor, currentOffset);
-		});
+		}
 	};
 
 	const handleMove = (e: MouseEvent) => {
-		if (isPatternMode) {
-			handleMovePattern(e);
-		} else {
+		if (selectedPattern === 'pixel') {
 			handleMovePixel(e);
+		} else {
+			handleMovePattern(e);
 		}
 	};
 
@@ -293,9 +297,10 @@
 		}
 		// Restore pattern pixels
 		if (patternBuffer.length > 0) {
-			patternBuffer.forEach((pixel) => {
-				insertPixelAt(pixel.color, pixel.offset);
-			});
+			for (let i = 0; i < patternBuffer.length; i++) {
+				const { offset, color } = patternBuffer[i];
+				insertPixelAt(color, offset);
+			}
 			patternBuffer = [];
 		}
 		pixelBuffer = null;
@@ -309,11 +314,16 @@
 	const setColor = (color: Color) => {
 		selectedColor = color;
 	};
+
+	$inspect(saving);
 </script>
 
 <!-- svelte-ignore element_invalid_self_closing_tag -->
-<div class="flex h-full w-full items-center justify-center overflow-hidden bg-gray-100">
-	<div style={`transform: scale(${zoom}, ${zoom});`}>
+<div
+	class:cursor-wait={saving}
+	class="flex h-full w-full items-center justify-center overflow-hidden bg-gray-100"
+>
+	<div class:pointer-events-none={saving} style={`transform: scale(${zoom}, ${zoom});`}>
 		<div
 			class="overflow-hidden"
 			style={`transform: translate(${transform.x}px, ${transform.y}px);`}
@@ -337,17 +347,23 @@
 			/>
 		</div>
 	</div>
-	<label class="absolute right-4 top-4 z-10 flex flex-col items-end gap-2">
-		<span class="text-xs">Pattern mode</span>
-		<input type="checkbox" bind:checked={isPatternMode} />
+	<div class="absolute bottom-4 z-10 flex gap-2 border-2 border-gray-300 bg-white p-2">
+		{#each Object.keys(colorsPalette) as (keyof typeof colorsPalette)[] as colorOption}
+			<ColorOption
+				onclick={() => setColor(colorOption)}
+				selected={selectedColor === colorOption}
+				color={colorsPalette[colorOption]}
+			/>
+		{/each}
+	</div>
+	<label class="absolute right-4 top-4 z-10 flex flex-col items-end">
+		<span class="text-xs">Select Pattern</span>
+		<select bind:value={selectedPattern} class="w-40 border border-gray-300 bg-white p-1 text-xs">
+			{#each Object.entries(patterns) as [patternName]}
+				<option value={patternName}>
+					{patternName}
+				</option>
+			{/each}
+		</select>
 	</label>
-</div>
-<div class="absolute bottom-4 z-10 flex gap-2 border-2 border-gray-300 bg-white p-2">
-	{#each Object.keys(colorsPalette) as (keyof typeof colorsPalette)[] as colorOption}
-		<ColorOption
-			onclick={() => setColor(colorOption)}
-			selected={selectedColor === colorOption}
-			color={colorsPalette[colorOption]}
-		/>
-	{/each}
 </div>
