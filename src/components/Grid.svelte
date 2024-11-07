@@ -2,10 +2,10 @@
 	import { onMount } from 'svelte';
 	import { getGridState, setPixel } from '../features/grid/service';
 
-	import { colorsPalette, height, width } from '../features/grid/const';
 	import ColorOption from './ColorOption.svelte';
 	import { webSocketManager } from '../websocket-manager';
 	import type { Color, Coordinates, Pixel } from '../features/grid/types';
+	import { colorsPalette, height, width } from '../features/grid/const';
 
 	let ws: WebSocket;
 
@@ -15,7 +15,7 @@
 	let rect: DOMRect;
 
 	let zoom = $state(5);
-	let selectedColor = $state(Object.keys(colorsPalette)[0] as keyof typeof colorsPalette);
+	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
 	let transform = $state({ x: 0, y: 0 });
 
 	let isDragging = false;
