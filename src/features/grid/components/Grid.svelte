@@ -4,8 +4,10 @@
 
 	import { webSocketManager } from '../../../websocket-manager';
 	import type { Color, Coordinates, Pixel } from '../types';
-	import { colorsPalette, height, width } from '../const';
+	import { colorsPalette, height, width, treePattern } from '../const';
 	import ColorOption from './ColorOption.svelte';
+
+	type PatternBuffer = Array<{ offset: number; color: Color }>;
 
 	let ws: WebSocket;
 
@@ -22,6 +24,11 @@
 	let isDragging = false;
 	let pixelBuffer: Pixel | null = null;
 	let dragThreshold: Coordinates | null = null;
+
+	let patternStart = $state<Coordinates | null>(null);
+	let patternEnd = $state<Coordinates | null>(null);
+
+	let patternBuffer: PatternBuffer = [];
 
 	onMount(() => {
 		(async () => {
@@ -101,8 +108,34 @@
 		await setPixel(offset, r, g, b, a);
 	};
 
-	const savePattern = (e: MouseEvent) => {
-		console.log('save pattern');
+	const savePattern = async (e: MouseEvent) => {
+		// Don't save pattern if we were just dragging
+		if (isDragging) {
+			isDragging = false;
+			return;
+		}
+
+		const offset = getPixelOffset(e);
+		const centerX = offset % width;
+		const centerY = Math.floor(offset / width);
+
+		// Apply pattern
+		for (const { x: dx, y: dy } of treePattern) {
+			const x = centerX + dx;
+			const y = centerY + dy;
+
+			// Skip if outside canvas bounds
+			if (x < 0 || x >= width || y < 0 || y >= height) continue;
+
+			const currentOffset = y * width + x;
+			const [r, g, b, a] = colorsPalette[selectedColor];
+
+			insertPixelAt(selectedColor, currentOffset);
+			ws.send(JSON.stringify({ offset: currentOffset, r, g, b, a }));
+			await setPixel(currentOffset, r, g, b, a);
+		}
+
+		patternBuffer = [];
 	};
 
 	const handleClick = async (e: MouseEvent) => {
@@ -162,10 +195,63 @@
 	};
 
 	const handleMovePattern = (e: MouseEvent) => {
-		console.log('move pattern');
-		// const offset = getPixelOffset(e);
-		// const color = getHoveredPixelColor(offset);
-		// insertPixelAt(color, offset);
+		const offset = getPixelOffset(e);
+		const centerX = offset % width;
+		const centerY = Math.floor(offset / width);
+		const isButtonPressed = e.buttons === 1;
+
+		// HANDLE DRAG
+		if (!isButtonPressed) {
+			isDragging = false;
+		}
+		if (isButtonPressed) {
+			if (dragThresholdReached(e)) {
+				isDragging = true;
+				dragThreshold = null;
+
+				const zoomFactor = 1 / zoom;
+				transform.x += e.movementX * zoomFactor;
+				transform.y += e.movementY * zoomFactor;
+
+				// Clear pattern preview when dragging
+				if (patternBuffer.length > 0) {
+					patternBuffer.forEach((pixel) => {
+						insertPixelAt(pixel.color, pixel.offset);
+					});
+					patternBuffer = [];
+				}
+				return;
+			}
+		}
+
+		// If we're dragging, don't show pattern preview
+		if (isDragging) return;
+
+		// Restore previous pattern pixels
+		if (patternBuffer.length > 0) {
+			patternBuffer.forEach((pixel) => {
+				insertPixelAt(pixel.color, pixel.offset);
+			});
+			patternBuffer = [];
+		}
+
+		// Draw new pattern preview
+		treePattern.forEach(({ x: dx, y: dy }) => {
+			const x = centerX + dx;
+			const y = centerY + dy;
+
+			// Skip if outside canvas bounds
+			if (x < 0 || x >= width || y < 0 || y >= height) return;
+
+			const currentOffset = y * width + x;
+			const currentColor = getHoveredPixelColor(currentOffset);
+
+			// Store original color in buffer
+			patternBuffer.push({ offset: currentOffset, color: currentColor });
+
+			// Draw preview
+			insertPixelAt(selectedColor, currentOffset);
+		});
 	};
 
 	const handleMove = (e: MouseEvent) => {
@@ -181,7 +267,16 @@
 		if (pixelBuffer) {
 			insertPixelAt(pixelBuffer.color, pixelBuffer.offset);
 		}
+		// Restore pattern pixels
+		if (patternBuffer.length > 0) {
+			patternBuffer.forEach((pixel) => {
+				insertPixelAt(pixel.color, pixel.offset);
+			});
+			patternBuffer = [];
+		}
 		pixelBuffer = null;
+		patternStart = null;
+		patternEnd = null;
 	};
 	// set scale factor
 	const handleScroll = async (e: WheelEvent) => {

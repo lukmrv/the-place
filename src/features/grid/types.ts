@@ -8,6 +8,10 @@ export type RemoteGridState = {
 	a: number;
 }[];
 
-export type Coordinates = { x: number; y: number };
+export interface Coordinates {
+	x: number;
+	y: number;
+}
+
 export type Color = keyof typeof colorsPalette;
 export type Pixel = { offset: number; color: Color };

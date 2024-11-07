@@ -19,3 +19,48 @@ export const colorsPalette = {
 	lightGray: [212, 215, 217, 255],
 	white: [255, 255, 255, 255]
 };
+
+export const crossPattern = [
+	{ x: 0, y: 0 },
+	{ x: 1, y: 0 },
+	{ x: -1, y: 0 },
+	{ x: 0, y: 1 },
+	{ x: 0, y: -1 }
+];
+
+export const treePattern = [
+	// Trunk
+	{ x: 0, y: 0 },
+	{ x: 0, y: 1 },
+	{ x: 0, y: 2 },
+	{ x: 0, y: 3 },
+
+	// Main branches
+	{ x: -2, y: -1 },
+	{ x: -1, y: -1 },
+	{ x: 1, y: -1 },
+	{ x: 2, y: -1 },
+	{ x: -1, y: 0 },
+	{ x: 1, y: 0 },
+
+	// Leaves/foliage
+	{ x: -3, y: -2 },
+	{ x: -2, y: -2 },
+	{ x: -1, y: -2 },
+	{ x: 0, y: -2 },
+	{ x: 1, y: -2 },
+	{ x: 2, y: -2 },
+	{ x: 3, y: -2 },
+
+	{ x: -2, y: -3 },
+	{ x: -1, y: -3 },
+	{ x: 0, y: -3 },
+	{ x: 1, y: -3 },
+	{ x: 2, y: -3 },
+
+	{ x: -1, y: -4 },
+	{ x: 0, y: -4 },
+	{ x: 1, y: -4 },
+
+	{ x: 0, y: -5 }
+];
