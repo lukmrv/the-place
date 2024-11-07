@@ -21,6 +21,7 @@
 
 	let isDragging = false;
 	let pixelBuffer: Pixel = { offset: null, color: null };
+	let dragThreshold: { x: number | null; y: number | null } = { x: null, y: null };
 
 	onMount(() => {
 		(async () => {
@@ -99,14 +100,22 @@
 	};
 	const handleMove = (e: MouseEvent) => {
 		if (e.buttons === 1) {
-			isDragging = true;
+			const isDragThresholdReached =
+				(dragThreshold.x === null && dragThreshold.y === null) ||
+				(dragThreshold.x !== null && Math.abs(e.clientX - dragThreshold.x) > 5) ||
+				(dragThreshold.y !== null && Math.abs(e.clientY - dragThreshold.y) > 5);
 
-			const zoomFactor = 1 / zoom;
-			transform.x += e.movementX * zoomFactor;
-			transform.y += e.movementY * zoomFactor;
+			if (isDragThresholdReached) {
+				isDragging = true;
+				dragThreshold = { x: null, y: null };
 
-			if (pixelBuffer.color && pixelBuffer.offset) {
-				insertPixel(pixelBuffer.color, pixelBuffer.offset);
+				const zoomFactor = 1 / zoom;
+				transform.x += e.movementX * zoomFactor;
+				transform.y += e.movementY * zoomFactor;
+
+				if (pixelBuffer.color && pixelBuffer.offset) {
+					insertPixel(pixelBuffer.color, pixelBuffer.offset);
+				}
 			}
 			return;
 		} else {
@@ -160,6 +169,15 @@
 				onclick={handleClick}
 				onmousemove={handleMove}
 				onmouseleave={handleLeave}
+				onmousedown={(e) => {
+					dragThreshold = { x: e.clientX, y: e.clientY };
+				}}
+				onmouseup={(e) => {
+					pixelBuffer = {
+						offset: null,
+						color: null
+					};
+				}}
 				onwheel={handleScroll}
 				style="image-rendering: pixelated;"
 				class="bg-white"
