@@ -6,10 +6,11 @@
 	import type { Color, Coordinates, Pixel } from '../types';
 	import { colorsPalette, height, width } from '../const';
 	import ColorOption from './ColorOption.svelte';
-	import { create_tree } from '../patterns';
+	import { create_tree, duck } from '../patterns';
 
 	const patterns = {
 		pixel: null,
+		duck,
 		tree: create_tree('autumn')
 	};
 

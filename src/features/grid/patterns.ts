@@ -1,6 +1,109 @@
 import type { Pattern } from './types';
 import type { Color } from './types';
 
+export const duck: Pattern = [
+	// row 1
+	{ x: 0, y: 0, color: 'black' },
+	{ x: -1, y: 0, color: 'black' },
+	{ x: -2, y: 0, color: 'black' },
+	{ x: -3, y: 0, color: 'black' },
+	{ x: -4, y: 0, color: 'black' },
+	{ x: 1, y: 0, color: 'black' },
+	{ x: 2, y: 0, color: 'black' },
+	{ x: 3, y: 0, color: 'black' },
+	{ x: 4, y: 0, color: 'black' },
+	// row 2
+	{ x: 0, y: -1, color: 'yellow' },
+	{ x: -1, y: -1, color: 'yellow' },
+	{ x: -2, y: -1, color: 'yellow' },
+	{ x: -3, y: -1, color: 'yellow' },
+	{ x: -4, y: -1, color: 'yellow' },
+	{ x: -5, y: -1, color: 'black' },
+	{ x: 1, y: -1, color: 'yellow' },
+	{ x: 2, y: -1, color: 'yellow' },
+	{ x: 3, y: -1, color: 'yellow' },
+	{ x: 4, y: -1, color: 'yellow' },
+	{ x: 5, y: -1, color: 'black' },
+	// row 3
+	{ x: 0, y: -2, color: 'yellow' },
+	{ x: -1, y: -2, color: 'yellow' },
+	{ x: -2, y: -2, color: 'yellow' },
+	{ x: -3, y: -2, color: 'yellow' },
+	{ x: -4, y: -2, color: 'yellow' },
+	{ x: -5, y: -2, color: 'black' },
+	{ x: 1, y: -2, color: 'yellow' },
+	{ x: 2, y: -2, color: 'yellow' },
+	{ x: 3, y: -2, color: 'yellow' },
+	{ x: 4, y: -2, color: 'yellow' },
+	{ x: 5, y: -2, color: 'black' },
+	// row 4
+	{ x: 0, y: -3, color: 'yellow' },
+	{ x: -1, y: -3, color: 'yellow' },
+	{ x: -2, y: -3, color: 'yellow' },
+	{ x: -3, y: -3, color: 'yellow' },
+	{ x: -4, y: -3, color: 'yellow' },
+	{ x: -5, y: -3, color: 'yellow' },
+	{ x: -6, y: -3, color: 'black' },
+	{ x: 1, y: -3, color: 'yellow' },
+	{ x: 2, y: -3, color: 'yellow' },
+	{ x: 3, y: -3, color: 'yellow' },
+	{ x: 4, y: -3, color: 'yellow' },
+	{ x: 5, y: -3, color: 'black' },
+	// row 5
+	{ x: 0, y: -4, color: 'yellow' },
+	{ x: -1, y: -4, color: 'black' },
+	{ x: -2, y: -4, color: 'black' },
+	{ x: -3, y: -4, color: 'black' },
+	{ x: -4, y: -4, color: 'black' },
+	{ x: -5, y: -4, color: 'black' },
+	{ x: -6, y: -4, color: 'black' },
+	{ x: -7, y: -4, color: 'black' },
+	{ x: 1, y: -4, color: 'yellow' },
+	{ x: 2, y: -4, color: 'yellow' },
+	{ x: 3, y: -4, color: 'yellow' },
+	{ x: 4, y: -4, color: 'yellow' },
+	{ x: 5, y: -4, color: 'black' },
+	// row 6
+	{ x: 0, y: -5, color: 'yellow' },
+	{ x: -1, y: -5, color: 'black' },
+	{ x: 1, y: -5, color: 'yellow' },
+	{ x: 2, y: -5, color: 'yellow' },
+	{ x: 3, y: -5, color: 'yellow' },
+	{ x: 4, y: -5, color: 'yellow' },
+	{ x: 5, y: -5, color: 'black' },
+	// row 7
+	{ x: 0, y: -6, color: 'yellow' },
+	{ x: -1, y: -6, color: 'black' },
+	{ x: 1, y: -6, color: 'yellow' },
+	{ x: 2, y: -6, color: 'yellow' },
+	{ x: 3, y: -6, color: 'black' },
+	{ x: 4, y: -6, color: 'yellow' },
+	{ x: 5, y: -6, color: 'black' },
+	// row 8
+	{ x: 0, y: -7, color: 'yellow' },
+	{ x: -1, y: -7, color: 'black' },
+	{ x: 1, y: -7, color: 'yellow' },
+	{ x: 2, y: -7, color: 'yellow' },
+	{ x: 3, y: -7, color: 'yellow' },
+	{ x: 4, y: -7, color: 'yellow' },
+	{ x: 5, y: -7, color: 'black' },
+	// row 9
+	{ x: 0, y: -8, color: 'black' },
+	{ x: 1, y: -8, color: 'black' },
+	{ x: 2, y: -8, color: 'black' },
+	{ x: 3, y: -8, color: 'black' },
+	{ x: 4, y: -8, color: 'black' },
+	// nose
+	{ x: 6, y: -6, color: 'black' },
+	{ x: 7, y: -6, color: 'black' },
+	{ x: 8, y: -6, color: 'black' },
+	{ x: 8, y: -5, color: 'black' },
+	{ x: 7, y: -4, color: 'black' },
+	{ x: 6, y: -4, color: 'black' },
+	{ x: 7, y: -5, color: 'orange' },
+	{ x: 6, y: -5, color: 'orange' }
+];
+
 export const create_tree = (color: 'autumn' | 'summer' | 'alien'): Pattern => {
 	const TREE_PATTERN_OUTLINE_COLOR: Color = 'black';
 	const TREE_TRUNK_COLOR: Color = 'brown';
@@ -28,7 +131,7 @@ export const create_tree = (color: 'autumn' | 'summer' | 'alien'): Pattern => {
 		// outline (black)
 		// // // // // //
 
-		// row 0
+		// row 1
 		{ x: 0, y: 0, color: TREE_PATTERN_OUTLINE_COLOR },
 		{ x: 3, y: 0, color: TREE_PATTERN_OUTLINE_COLOR },
 		{ x: 4, y: 0, color: TREE_PATTERN_OUTLINE_COLOR },
