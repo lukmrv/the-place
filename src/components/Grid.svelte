@@ -5,8 +5,7 @@
 	import { colorsPalette, height, width } from '../features/grid/const';
 	import ColorOption from './ColorOption.svelte';
 	import { webSocketManager } from '../websocket-manager';
-
-	type Pixel = { offset: number | null; color: keyof typeof colorsPalette | null };
+	import type { Color, Coordinates, Pixel } from '../features/grid/types';
 
 	let ws: WebSocket;
 
@@ -20,8 +19,8 @@
 	let transform = $state({ x: 0, y: 0 });
 
 	let isDragging = false;
-	let pixelBuffer: Pixel = { offset: null, color: null };
-	let dragThreshold: { x: number | null; y: number | null } = { x: null, y: null };
+	let pixelBuffer: Pixel | null = null;
+	let dragThreshold: Coordinates | null = null;
 
 	onMount(() => {
 		(async () => {
@@ -36,7 +35,7 @@
 		ws = webSocketManager();
 		ws.onmessage = (e) => {
 			const { offset, r, g, b, a } = JSON.parse(e.data);
-			insertPixel(mapPixelDataToColor({ r, g, b, a }), offset);
+			insertPixelAt(mapPixelDataToColor({ r, g, b, a }), offset);
 		};
 
 		return () => ws.close();
@@ -71,24 +70,26 @@
 		return offset;
 	};
 
-	const insertPixel = (color: keyof typeof colorsPalette, offset: number) => {
+	// mutate imageDataObject
+	const insertPixelAt = (color: Color, offset: number) => {
 		const [r, g, b, a] = colorsPalette[color];
-
 		imageData.data[offset * 4] = r;
 		imageData.data[offset * 4 + 1] = g;
 		imageData.data[offset * 4 + 2] = b;
 		imageData.data[offset * 4 + 3] = a;
-
 		context.putImageData(imageData, 0, 0);
 	};
+	const dragThresholdReached = (e: MouseEvent) =>
+		dragThreshold === null ||
+		Math.abs(e.clientX - dragThreshold.x) > 5 ||
+		Math.abs(e.clientY - dragThreshold.y) > 5;
 
 	const handleClick = async (e: MouseEvent) => {
 		if (isDragging) {
 			return;
 		}
-
 		const offset = getPixelOffset(e);
-		insertPixel(selectedColor, offset);
+		insertPixelAt(selectedColor, offset);
 		const [r, g, b, a] = colorsPalette[selectedColor];
 		pixelBuffer = {
 			offset: offset,
@@ -98,60 +99,69 @@
 		ws.send(JSON.stringify({ offset, r, g, b, a }));
 		await setPixel(offset, r, g, b, a);
 	};
-	const handleMove = (e: MouseEvent) => {
-		if (e.buttons === 1) {
-			const isDragThresholdReached =
-				(dragThreshold.x === null && dragThreshold.y === null) ||
-				(dragThreshold.x !== null && Math.abs(e.clientX - dragThreshold.x) > 5) ||
-				(dragThreshold.y !== null && Math.abs(e.clientY - dragThreshold.y) > 5);
 
-			if (isDragThresholdReached) {
+	const handleMove = (e: MouseEvent) => {
+		const offset = getPixelOffset(e);
+		const color = getHoveredPixelColor(offset);
+		const isButtonPressed = e.buttons === 1;
+		const hoveredPixelChanged = offset !== pixelBuffer?.offset;
+
+		// HANDLE ENTER
+		if (!pixelBuffer) {
+			insertPixelAt(selectedColor, offset);
+			pixelBuffer = {
+				offset,
+				color
+			};
+		}
+
+		if (pixelBuffer && hoveredPixelChanged) {
+			// restore buffer pixel
+			insertPixelAt(pixelBuffer.color, pixelBuffer.offset);
+			// set hovered pixel
+			insertPixelAt(selectedColor, offset);
+			// update buffer
+			pixelBuffer = {
+				offset,
+				color
+			};
+		}
+
+		// HANDLE DRAG
+		if (!isButtonPressed) {
+			isDragging = false;
+		}
+		if (isButtonPressed) {
+			if (dragThresholdReached(e)) {
 				isDragging = true;
-				dragThreshold = { x: null, y: null };
+				dragThreshold = null;
 
 				const zoomFactor = 1 / zoom;
 				transform.x += e.movementX * zoomFactor;
 				transform.y += e.movementY * zoomFactor;
 
-				if (pixelBuffer.color && pixelBuffer.offset) {
-					insertPixel(pixelBuffer.color, pixelBuffer.offset);
+				// reset hovered pixel on drag
+				if (pixelBuffer) {
+					insertPixelAt(pixelBuffer.color, pixelBuffer.offset);
 				}
 			}
-			return;
-		} else {
-			isDragging = false;
-		}
-
-		const offset = getPixelOffset(e);
-		const hoveredPixelColor = getHoveredPixelColor(offset);
-		if (offset !== pixelBuffer.offset) {
-			insertPixel(selectedColor, offset);
-			if (pixelBuffer.color && pixelBuffer.offset) {
-				insertPixel(pixelBuffer.color, pixelBuffer.offset);
-			}
-			pixelBuffer = {
-				offset: offset,
-				color: hoveredPixelColor
-			};
 		}
 	};
+	// clear buffer
 	const handleLeave = () => {
-		if (pixelBuffer.color && pixelBuffer.offset) {
-			insertPixel(pixelBuffer.color, pixelBuffer.offset);
-			pixelBuffer = {
-				offset: null,
-				color: null
-			};
+		if (pixelBuffer) {
+			insertPixelAt(pixelBuffer.color, pixelBuffer.offset);
 		}
+		pixelBuffer = null;
 	};
-	const selectColor = (color: keyof typeof colorsPalette) => {
-		selectedColor = color;
-	};
-
+	// set scale factor
 	const handleScroll = async (e: WheelEvent) => {
 		const dir = Math.sign(e.deltaY);
 		zoom -= dir;
 		zoom = Math.max(5, Math.min(30, zoom));
+	};
+	const setColor = (color: Color) => {
+		selectedColor = color;
 	};
 </script>
 
@@ -172,11 +182,8 @@
 				onmousedown={(e) => {
 					dragThreshold = { x: e.clientX, y: e.clientY };
 				}}
-				onmouseup={(e) => {
-					pixelBuffer = {
-						offset: null,
-						color: null
-					};
+				onmouseup={() => {
+					pixelBuffer = null;
 				}}
 				onwheel={handleScroll}
 				style="image-rendering: pixelated;"
@@ -188,7 +195,7 @@
 <div class="absolute bottom-4 z-10 flex gap-2 border-2 border-gray-300 bg-white p-2">
 	{#each Object.keys(colorsPalette) as (keyof typeof colorsPalette)[] as colorOption}
 		<ColorOption
-			onclick={() => selectColor(colorOption)}
+			onclick={() => setColor(colorOption)}
 			selected={selectedColor === colorOption}
 			color={colorsPalette[colorOption]}
 		/>
