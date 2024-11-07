@@ -104,6 +104,491 @@ export const duck: Pattern = [
 	{ x: 6, y: -5, color: 'orange' }
 ];
 
+export const heart: Pattern = [
+	{
+		x: 0,
+		y: 0,
+		color: 'red'
+	},
+	{
+		x: -1,
+		y: -1,
+		color: 'red'
+	},
+	{
+		x: -2,
+		y: -2,
+		color: 'red'
+	},
+	{
+		x: -3,
+		y: -3,
+		color: 'red'
+	},
+	{
+		x: -3,
+		y: -4,
+		color: 'red'
+	},
+	{
+		x: -2,
+		y: -5,
+		color: 'red'
+	},
+	{
+		x: -1,
+		y: -6,
+		color: 'red'
+	},
+	{
+		x: 0,
+		y: -6,
+		color: 'red'
+	},
+	{
+		x: 1,
+		y: -5,
+		color: 'red'
+	},
+	{
+		x: 2,
+		y: -6,
+		color: 'red'
+	},
+	{
+		x: 3,
+		y: -6,
+		color: 'red'
+	},
+	{
+		x: 4,
+		y: -5,
+		color: 'red'
+	},
+	{
+		x: 5,
+		y: -4,
+		color: 'red'
+	},
+	{
+		x: 5,
+		y: -3,
+		color: 'red'
+	},
+	{
+		x: 4,
+		y: -2,
+		color: 'red'
+	},
+	{
+		x: 3,
+		y: -1,
+		color: 'red'
+	},
+	{
+		x: 2,
+		y: 0,
+		color: 'red'
+	},
+	{
+		x: 1,
+		y: 1,
+		color: 'red'
+	}
+];
+
+export const dog: Pattern = [
+	{
+		x: 0,
+		y: 0,
+		color: 'black'
+	},
+	{
+		x: 0,
+		y: -1,
+		color: 'black'
+	},
+	{
+		x: 0,
+		y: -2,
+		color: 'black'
+	},
+	{
+		x: 0,
+		y: -3,
+		color: 'black'
+	},
+	{
+		x: 0,
+		y: -4,
+		color: 'black'
+	},
+	{
+		x: 0,
+		y: -5,
+		color: 'black'
+	},
+	{
+		x: 1,
+		y: -6,
+		color: 'black'
+	},
+	{
+		x: 1,
+		y: -7,
+		color: 'black'
+	},
+	{
+		x: 2,
+		y: -8,
+		color: 'black'
+	},
+	{
+		x: 3,
+		y: -9,
+		color: 'black'
+	},
+	{
+		x: 4,
+		y: -10,
+		color: 'black'
+	},
+	{
+		x: 5,
+		y: -11,
+		color: 'black'
+	},
+	{
+		x: 6,
+		y: -11,
+		color: 'black'
+	},
+	{
+		x: 7,
+		y: -12,
+		color: 'black'
+	},
+	{
+		x: 8,
+		y: -12,
+		color: 'black'
+	},
+	{
+		x: 9,
+		y: -12,
+		color: 'black'
+	},
+	{
+		x: 10,
+		y: -12,
+		color: 'black'
+	},
+	{
+		x: 11,
+		y: -12,
+		color: 'black'
+	},
+	{
+		x: 12,
+		y: -12,
+		color: 'black'
+	},
+	{
+		x: 13,
+		y: -12,
+		color: 'black'
+	},
+	{
+		x: 14,
+		y: -11,
+		color: 'black'
+	},
+	{
+		x: 15,
+		y: -11,
+		color: 'black'
+	},
+	{
+		x: 16,
+		y: -10,
+		color: 'black'
+	},
+	{
+		x: 17,
+		y: -9,
+		color: 'black'
+	},
+	{
+		x: 18,
+		y: -8,
+		color: 'black'
+	},
+	{
+		x: 19,
+		y: -7,
+		color: 'black'
+	},
+	{
+		x: 19,
+		y: -6,
+		color: 'black'
+	},
+	{
+		x: 20,
+		y: -5,
+		color: 'black'
+	},
+	{
+		x: 20,
+		y: -4,
+		color: 'black'
+	},
+	{
+		x: 20,
+		y: -3,
+		color: 'black'
+	},
+	{
+		x: 20,
+		y: -2,
+		color: 'black'
+	},
+	{
+		x: 20,
+		y: -1,
+		color: 'black'
+	},
+	{
+		x: 20,
+		y: 0,
+		color: 'black'
+	},
+	{
+		x: 19,
+		y: 1,
+		color: 'black'
+	},
+	{
+		x: 18,
+		y: 1,
+		color: 'black'
+	},
+	{
+		x: 18,
+		y: 2,
+		color: 'black'
+	},
+	{
+		x: 18,
+		y: 3,
+		color: 'black'
+	},
+	{
+		x: 18,
+		y: 4,
+		color: 'black'
+	},
+	{
+		x: 17,
+		y: 5,
+		color: 'black'
+	},
+	{
+		x: 16,
+		y: 6,
+		color: 'black'
+	},
+	{
+		x: 15,
+		y: 6,
+		color: 'black'
+	},
+	{
+		x: 14,
+		y: 7,
+		color: 'black'
+	},
+	{
+		x: 13,
+		y: 7,
+		color: 'black'
+	},
+	{
+		x: 12,
+		y: 7,
+		color: 'black'
+	},
+	{
+		x: 11,
+		y: 7,
+		color: 'black'
+	},
+	{
+		x: 10,
+		y: 7,
+		color: 'black'
+	},
+	{
+		x: 9,
+		y: 7,
+		color: 'black'
+	},
+	{
+		x: 8,
+		y: 7,
+		color: 'black'
+	},
+	{
+		x: 7,
+		y: 7,
+		color: 'black'
+	},
+	{
+		x: 6,
+		y: 7,
+		color: 'black'
+	},
+	{
+		x: 5,
+		y: 6,
+		color: 'black'
+	},
+	{
+		x: 4,
+		y: 6,
+		color: 'black'
+	},
+	{
+		x: 3,
+		y: 5,
+		color: 'black'
+	},
+	{
+		x: 2,
+		y: 4,
+		color: 'black'
+	},
+	{
+		x: 2,
+		y: 3,
+		color: 'black'
+	},
+	{
+		x: 2,
+		y: 2,
+		color: 'black'
+	},
+	{
+		x: 2,
+		y: 1,
+		color: 'black'
+	},
+	{
+		x: 1,
+		y: 1,
+		color: 'black'
+	},
+	{
+		x: 3,
+		y: 0,
+		color: 'black'
+	},
+	{
+		x: 3,
+		y: -1,
+		color: 'black'
+	},
+	{
+		x: 3,
+		y: -3,
+		color: 'black'
+	},
+	{
+		x: 3,
+		y: -5,
+		color: 'black'
+	},
+	{
+		x: 3,
+		y: -4,
+		color: 'black'
+	},
+	{
+		x: 4,
+		y: -6,
+		color: 'black'
+	},
+	{
+		x: 5,
+		y: -7,
+		color: 'black'
+	},
+	{
+		x: 6,
+		y: -7,
+		color: 'black'
+	}
+];
+
+export const pacman: Pattern = [
+	// Pacman body - yellow
+	{ x: 0, y: 0, color: 'yellow' },
+	{ x: -1, y: 0, color: 'yellow' },
+	{ x: 1, y: 0, color: 'yellow' },
+	{ x: -2, y: -1, color: 'yellow' },
+	{ x: -1, y: -1, color: 'yellow' },
+	{ x: 0, y: -1, color: 'yellow' },
+	{ x: 1, y: -1, color: 'yellow' },
+	{ x: -2, y: -2, color: 'yellow' },
+	{ x: -1, y: -2, color: 'yellow' },
+	{ x: 0, y: -2, color: 'yellow' },
+	{ x: -2, y: -3, color: 'yellow' },
+	{ x: -1, y: -3, color: 'yellow' },
+	{ x: 0, y: -3, color: 'yellow' },
+	{ x: -2, y: -4, color: 'yellow' },
+	{ x: -1, y: -4, color: 'yellow' },
+	{ x: 0, y: -4, color: 'yellow' },
+	{ x: 1, y: -4, color: 'yellow' },
+	{ x: -1, y: -5, color: 'yellow' },
+	{ x: 0, y: -5, color: 'yellow' },
+	{ x: 1, y: -5, color: 'yellow' },
+	{ x: 0, y: -6, color: 'yellow' },
+	{ x: 1, y: -6, color: 'yellow' },
+
+	// Pacman outline - black
+	{ x: -2, y: 0, color: 'black' },
+	{ x: 2, y: 0, color: 'black' },
+	{ x: -3, y: -1, color: 'black' },
+	{ x: 2, y: -1, color: 'black' },
+	{ x: -3, y: -2, color: 'black' },
+	{ x: 1, y: -2, color: 'black' },
+	{ x: -3, y: -3, color: 'black' },
+	{ x: 1, y: -3, color: 'black' },
+	{ x: -3, y: -4, color: 'black' },
+	{ x: 2, y: -4, color: 'black' },
+	{ x: -2, y: -5, color: 'black' },
+	{ x: 2, y: -5, color: 'black' },
+	{ x: -1, y: -6, color: 'black' },
+	{ x: 2, y: -6, color: 'black' },
+	{ x: 0, y: -7, color: 'black' },
+	{ x: 1, y: -7, color: 'black' },
+
+	// Pacman eye - black
+	{ x: 0, y: -2, color: 'black' },
+
+	// Dots that Pacman eats - white
+	{ x: 4, y: -3, color: 'white' },
+	{ x: 7, y: -3, color: 'white' },
+	{ x: 10, y: -3, color: 'white' },
+	{ x: 13, y: -3, color: 'white' },
+
+	// Power pellet - white
+	{ x: 16, y: -3, color: 'white' },
+	{ x: 17, y: -3, color: 'white' },
+	{ x: 16, y: -4, color: 'white' },
+	{ x: 17, y: -4, color: 'white' }
+];
+
 export const create_tree = (color: 'autumn' | 'summer' | 'alien'): Pattern => {
 	const TREE_PATTERN_OUTLINE_COLOR: Color = 'black';
 	const TREE_TRUNK_COLOR: Color = 'brown';

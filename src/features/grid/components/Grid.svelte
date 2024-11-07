@@ -1,17 +1,20 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getGridState, setPixel } from '../service';
+	import { getGridState, setPixel, PatternRecorder } from '../service';
 
 	import { webSocketManager } from '../../../websocket-manager';
 	import type { Color, Coordinates, Pixel } from '../types';
 	import { colorsPalette, height, width } from '../const';
 	import ColorOption from './ColorOption.svelte';
-	import { create_tree, duck } from '../patterns';
+	import { create_tree, dog, duck, pacman, heart } from '../patterns';
 
 	const patterns = {
 		pixel: null,
-		duck,
-		tree: create_tree('autumn')
+		dog,
+		heart,
+		duck, // 90px
+		pacman, // 150px
+		tree: create_tree('autumn') // 805px
 	};
 
 	let ws: WebSocket;
@@ -31,6 +34,31 @@
 	let pixelBuffer: Pixel | null = null;
 	let patternBuffer: Pixel[] = [];
 	let dragThreshold: Coordinates | null = null;
+
+	const patternRecorder = new PatternRecorder();
+	let isRecording = $state(false);
+
+	function handleCellClick(e: MouseEvent) {
+		if (!isRecording) return;
+
+		const offset = getPixelOffset(e);
+		const color = getHoveredPixelColor(offset);
+		if (color) {
+			patternRecorder.addPixel({ offset, color });
+		}
+	}
+
+	function startRecording() {
+		isRecording = true;
+		patternRecorder.startRecording();
+	}
+
+	function stopRecording() {
+		isRecording = false;
+		const pattern = patternRecorder.stopRecording();
+		console.log('Recorded Pattern:', pattern);
+		// You can emit this pattern to parent component or handle it as needed
+	}
 
 	onMount(() => {
 		(async () => {
@@ -151,7 +179,9 @@
 
 	const handleClick = async (e: MouseEvent) => {
 		saving = true;
-		if (selectedPattern === 'pixel') {
+		if (isRecording) {
+			handleCellClick(e);
+		} else if (selectedPattern === 'pixel') {
 			await savePixel(e);
 		} else {
 			await savePattern(e);
@@ -311,7 +341,7 @@
 				{width}
 				{height}
 				bind:this={canvas}
-				onclick={handleClick}
+				onclick={(e) => handleClick(e)}
 				onmousemove={handleMove}
 				onmouseleave={handleLeave}
 				onmousedown={(e) => {
@@ -335,6 +365,7 @@
 			/>
 		{/each}
 	</div>
+
 	<label class="absolute right-4 top-4 z-10 flex flex-col items-end">
 		<span class="text-xs">Select Pattern</span>
 		<select bind:value={selectedPattern} class="w-40 border border-gray-300 bg-white p-1 text-xs">
@@ -345,4 +376,45 @@
 			{/each}
 		</select>
 	</label>
+
+	<div class="absolute left-4 top-4 z-10 flex flex-col items-end">
+		<!-- Add recording controls -->
+		<div class="controls">
+			{#if !isRecording}
+				<button onclick={startRecording}>Start Recording Pattern</button>
+			{:else}
+				<button onclick={stopRecording}>Stop Recording Pattern</button>
+			{/if}
+		</div>
+
+		<!-- Add recording indicator -->
+		{#if isRecording}
+			<div class="recording-indicator">Recording Pattern...</div>
+		{/if}
+	</div>
 </div>
+
+<style>
+	.controls {
+		margin-bottom: 1rem;
+	}
+
+	.recording-indicator {
+		color: red;
+		margin-bottom: 1rem;
+		font-weight: bold;
+	}
+
+	button {
+		padding: 0.5rem 1rem;
+		background-color: #4caf50;
+		color: white;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+
+	button:hover {
+		background-color: #45a049;
+	}
+</style>
