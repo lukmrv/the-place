@@ -6,32 +6,10 @@
 	import type { Color, Coordinates, Pixel } from '../types';
 	import { colorsPalette, height, width } from '../const';
 	import ColorOption from './ColorOption.svelte';
-	import {
-		car,
-		christmas_tree,
-		create_tree,
-		cross,
-		ghost,
-		heart,
-		infakt_logo,
-		mario,
-		mushroom,
-		pacman,
-		sword
-	} from '../patterns';
+	import { create_tree } from '../patterns';
 
 	const patterns = {
 		pixel: null,
-		car,
-		heart,
-		christmas_tree,
-		infakt_logo,
-		pacman,
-		ghost,
-		mario,
-		mushroom,
-		sword,
-		cross,
 		tree: create_tree('autumn')
 	};
 
@@ -143,8 +121,18 @@
 		const centerX = offset % width;
 		const centerY = Math.floor(offset / width);
 
-		for (let i = 0; i < patterns[selectedPattern]!.length; i++) {
-			const { x: dx, y: dy, color: patternColor } = patterns[selectedPattern]![i];
+		// Clear any existing pattern buffer first
+		if (patternBuffer.length > 0) {
+			for (let i = 0; i < patternBuffer.length; i++) {
+				const { offset, color } = patternBuffer[i];
+				insertPixelAt(color, offset);
+			}
+			patternBuffer = [];
+		}
+
+		const pattern = patterns[selectedPattern]!;
+		for (let i = 0; i < pattern.length; i++) {
+			const { x: dx, y: dy, color: patternColor } = pattern[i];
 			const x = centerX + dx;
 			const y = centerY + dy;
 
@@ -158,8 +146,6 @@
 			ws.send(JSON.stringify({ offset: currentOffset, r, g, b, a }));
 			await setPixel(currentOffset, r, g, b, a);
 		}
-
-		patternBuffer = [];
 	};
 
 	const handleClick = async (e: MouseEvent) => {
@@ -226,6 +212,30 @@
 		const centerY = Math.floor(offset / width);
 		const isButtonPressed = e.buttons === 1;
 
+		// Clear previous pattern preview
+		if (patternBuffer.length > 0) {
+			for (let i = 0; i < patternBuffer.length; i++) {
+				const { offset, color } = patternBuffer[i];
+				insertPixelAt(color, offset);
+			}
+			patternBuffer = [];
+		}
+
+		// Draw new pattern preview
+		const pattern = patterns[selectedPattern]!;
+		for (let i = 0; i < pattern.length; i++) {
+			const { x: dx, y: dy, color: patternColor } = pattern[i];
+			const x = centerX + dx;
+			const y = centerY + dy;
+
+			if (x < 0 || x >= width || y < 0 || y >= height) continue;
+
+			const currentOffset = y * width + x;
+			const currentColor = getHoveredPixelColor(currentOffset);
+			patternBuffer.push({ offset: currentOffset, color: currentColor });
+			insertPixelAt(patternColor, currentOffset);
+		}
+
 		// HANDLE DRAG
 		if (!isButtonPressed) {
 			isDragging = false;
@@ -249,36 +259,6 @@
 				}
 				return;
 			}
-		}
-
-		// If we're dragging, don't show pattern preview
-		if (isDragging) return;
-
-		// Restore previous pattern pixels
-		if (patternBuffer.length > 0) {
-			for (let i = 0; i < patternBuffer.length; i++) {
-				const { offset, color } = patternBuffer[i];
-				insertPixelAt(color, offset);
-			}
-			patternBuffer = [];
-		}
-
-		for (let i = 0; i < patterns[selectedPattern]!.length; i++) {
-			const { x: dx, y: dy, color: patternColor } = patterns[selectedPattern]![i];
-			const x = centerX + dx;
-			const y = centerY + dy;
-
-			// Skip if outside canvas bounds
-			if (x < 0 || x >= width || y < 0 || y >= height) return;
-
-			const currentOffset = y * width + x;
-			const currentColor = getHoveredPixelColor(currentOffset);
-
-			// Store original color in buffer
-			patternBuffer.push({ offset: currentOffset, color: currentColor });
-
-			// Draw preview using pattern color
-			insertPixelAt(patternColor, currentOffset);
 		}
 	};
 
@@ -314,8 +294,6 @@
 	const setColor = (color: Color) => {
 		selectedColor = color;
 	};
-
-	$inspect(saving);
 </script>
 
 <!-- svelte-ignore element_invalid_self_closing_tag -->
