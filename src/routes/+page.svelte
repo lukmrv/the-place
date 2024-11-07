@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import Grid from '../components/Grid.svelte';
+	import Grid from '../features/grid/components/Grid.svelte';
 </script>
 
 <svelte:head>

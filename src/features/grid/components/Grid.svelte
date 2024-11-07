@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getGridState, setPixel } from '../features/grid/service';
+	import { getGridState, setPixel } from '../service';
 
+	import { webSocketManager } from '../../../websocket-manager';
+	import type { Color, Coordinates, Pixel } from '../types';
+	import { colorsPalette, height, width } from '../const';
 	import ColorOption from './ColorOption.svelte';
-	import { webSocketManager } from '../websocket-manager';
-	import type { Color, Coordinates, Pixel } from '../features/grid/types';
-	import { colorsPalette, height, width } from '../features/grid/const';
 
 	let ws: WebSocket;
 
@@ -17,6 +17,7 @@
 	let zoom = $state(5);
 	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
 	let transform = $state({ x: 0, y: 0 });
+	let isPatternMode = $state(false);
 
 	let isDragging = false;
 	let pixelBuffer: Pixel | null = null;
@@ -84,7 +85,7 @@
 		Math.abs(e.clientX - dragThreshold.x) > 5 ||
 		Math.abs(e.clientY - dragThreshold.y) > 5;
 
-	const handleClick = async (e: MouseEvent) => {
+	const savePixel = async (e: MouseEvent) => {
 		if (isDragging) {
 			return;
 		}
@@ -100,7 +101,19 @@
 		await setPixel(offset, r, g, b, a);
 	};
 
-	const handleMove = (e: MouseEvent) => {
+	const savePattern = (e: MouseEvent) => {
+		console.log('save pattern');
+	};
+
+	const handleClick = async (e: MouseEvent) => {
+		if (isPatternMode) {
+			savePattern(e);
+		} else {
+			savePixel(e);
+		}
+	};
+
+	const handleMovePixel = (e: MouseEvent) => {
 		const offset = getPixelOffset(e);
 		const color = getHoveredPixelColor(offset);
 		const isButtonPressed = e.buttons === 1;
@@ -147,6 +160,22 @@
 			}
 		}
 	};
+
+	const handleMovePattern = (e: MouseEvent) => {
+		console.log('move pattern');
+		// const offset = getPixelOffset(e);
+		// const color = getHoveredPixelColor(offset);
+		// insertPixelAt(color, offset);
+	};
+
+	const handleMove = (e: MouseEvent) => {
+		if (isPatternMode) {
+			handleMovePattern(e);
+		} else {
+			handleMovePixel(e);
+		}
+	};
+
 	// clear buffer
 	const handleLeave = () => {
 		if (pixelBuffer) {
@@ -191,6 +220,10 @@
 			/>
 		</div>
 	</div>
+	<label class="absolute right-4 top-4 z-10 flex flex-col items-end gap-2">
+		<span class="text-xs">Pattern mode</span>
+		<input type="checkbox" bind:checked={isPatternMode} />
+	</label>
 </div>
 <div class="absolute bottom-4 z-10 flex gap-2 border-2 border-gray-300 bg-white p-2">
 	{#each Object.keys(colorsPalette) as (keyof typeof colorsPalette)[] as colorOption}
