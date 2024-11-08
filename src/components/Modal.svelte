@@ -35,7 +35,7 @@
 
 		<!-- svelte-ignore a11y_autofocus -->
 		<button
-			class="absolute right-0 top-0 flex h-10 w-10 items-center justify-center bg-gray-100 text-gray-500"
+			class="absolute right-0 top-0 flex h-14 w-10 items-center justify-center bg-gray-100 text-[36px] text-gray-400"
 			onclick={() => dialog?.close()}
 		>
 			&times;

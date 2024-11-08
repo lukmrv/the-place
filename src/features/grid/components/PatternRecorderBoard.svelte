@@ -25,23 +25,13 @@
 	});
 
 	function handleCellClick(e: MouseEvent) {
-		if (!isRecording) return;
-
 		const offset = getPixelOffset(e);
 		const color = getHoveredPixelColor(offset);
-		if (color) {
-			patternRecorder.addPixel({ offset, color });
-		}
+		patternRecorder.addPixel({ offset, color });
 	}
 
-	function startRecording() {
-		isRecording = true;
-		patternRecorder.startRecording();
-	}
-
-	function stopRecording() {
-		isRecording = false;
-		const pattern = patternRecorder.stopRecording();
+	function savePattern() {
+		const pattern = patternRecorder.savePattern();
 		console.log('Recorded Pattern:', pattern);
 		// You can emit this pattern to parent component or handle it as needed
 	}
@@ -132,18 +122,30 @@
 			onmousemove={handleMovePixel}
 			onmouseleave={handleLeave}
 			onmouseup={() => {
-				isRecording && (pixelBuffer = null);
+				pixelBuffer = null;
 			}}
 			style="image-rendering: pixelated; transform: scale(30, 30);"
 			class=" bg-white"
 		/>
 	</div>
-	<div class="flex flex-col items-center justify-center">
-		<!-- Add recording controls -->
-		<div class="my-8">
-			<Button color="fancy" onclick={() => (isRecording ? stopRecording() : startRecording())}
-				>{isRecording ? 'Stop Recording' : 'Start Recording'}</Button
-			>
-		</div>
-	</div>
+	<button
+		class="flex h-10 flex-col items-center justify-center bg-gray-700 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors duration-200 ease-in-out"
+		onclick={savePattern}
+	>
+		<svg
+			class="mr-2 h-4 w-4"
+			fill="none"
+			stroke="currentColor"
+			viewBox="0 0 24 24"
+			xmlns="http://www.w3.org/2000/svg"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				stroke-width="2"
+				d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+			/>
+		</svg>
+		Save Pattern
+	</button>
 </div>

@@ -4,29 +4,22 @@ export const width = 8;
 export const height = 8;
 
 export class PatternRecorder {
-	private recording: boolean = false;
 	private pattern: Pattern = [];
 	private originOffset: number | null = null;
 
-	startRecording() {
-		this.recording = true;
+	clearPattern() {
 		this.pattern = [];
 		this.originOffset = null;
-
-		console.log(this.pattern);
 	}
 
-	stopRecording(): Pattern {
-		this.recording = false;
+	savePattern(): Pattern {
+		console.log('Saving pattern:', this.pattern);
 		const finalPattern = [...this.pattern];
-		this.pattern = [];
-		this.originOffset = null;
+		this.clearPattern();
 		return finalPattern;
 	}
 
 	addPixel(pixel: Pixel) {
-		if (!this.recording) return;
-
 		const x = pixel.offset % width;
 		const y = Math.floor(pixel.offset / width);
 
@@ -48,10 +41,6 @@ export class PatternRecorder {
 		if (!exists) {
 			this.pattern.push({ x: offsetX, y: offsetY, color: pixel.color });
 		}
-	}
-
-	isRecording(): boolean {
-		return this.recording;
 	}
 
 	getCurrentPattern(): Pattern {
