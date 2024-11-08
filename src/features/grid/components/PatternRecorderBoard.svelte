@@ -3,6 +3,7 @@
 	import type { Color, Coordinates, Pixel } from '../types';
 	import { colorsPalette } from '../const';
 	import { height, PatternRecorder, width } from '../pattern-recorder';
+	import Button from '../../../components/Button.svelte';
 
 	const patternRecorder = new PatternRecorder();
 
@@ -12,17 +13,13 @@
 	let rect: DOMRect;
 
 	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
-	let transform = $state({ x: 0, y: 0 });
 	let saving = $state<boolean>(false);
 	let isRecording = $state(false);
 
-	let isDragging = false;
 	let pixelBuffer: Pixel | null = null;
-	let dragThreshold: Coordinates | null = null;
 
 	onMount(() => {
 		context = canvas.getContext('2d')!;
-		context.imageSmoothingEnabled = false;
 		const whiteArray = Array.from({ length: width * height * 4 }, () => 255);
 		imageData = new ImageData(new Uint8ClampedArray(whiteArray), width, height);
 	});
@@ -88,15 +85,10 @@
 		imageData.data[offset * 4 + 3] = a;
 		context.putImageData(imageData, 0, 0);
 	};
-	const dragThresholdReached = (e: MouseEvent) =>
-		dragThreshold === null ||
-		Math.abs(e.clientX - dragThreshold.x) > 5 ||
-		Math.abs(e.clientY - dragThreshold.y) > 5;
 
 	const handleMovePixel = (e: MouseEvent) => {
 		const offset = getPixelOffset(e);
 		const color = getHoveredPixelColor(offset);
-		const isButtonPressed = e.buttons === 1;
 		const hoveredPixelChanged = offset !== pixelBuffer?.offset;
 
 		// HANDLE ENTER
@@ -119,26 +111,6 @@
 				color
 			};
 		}
-
-		// HANDLE DRAG
-		if (!isButtonPressed) {
-			isDragging = false;
-		}
-		if (isButtonPressed) {
-			if (dragThresholdReached(e)) {
-				isDragging = true;
-				dragThreshold = null;
-
-				const zoomFactor = 1 / 60;
-				transform.x += e.movementX * zoomFactor;
-				transform.y += e.movementY * zoomFactor;
-
-				// reset hovered pixel on drag
-				if (pixelBuffer) {
-					insertPixelAt(pixelBuffer.color, pixelBuffer.offset);
-				}
-			}
-		}
 	};
 
 	const handleLeave = () => {
@@ -150,39 +122,28 @@
 </script>
 
 <!-- svelte-ignore element_invalid_self_closing_tag -->
-<div class="flex h-full w-full items-center justify-center overflow-hidden bg-gray-100">
-	<canvas
-		{width}
-		{height}
-		bind:this={canvas}
-		onclick={handleCellClick}
-		onmousemove={handleMovePixel}
-		onmouseleave={handleLeave}
-		onmousedown={(e) => {
-			dragThreshold = { x: e.clientX, y: e.clientY };
-		}}
-		onmouseup={() => {
-			pixelBuffer = null;
-		}}
-		style="image-rendering: pixelated; transform: scale(60, 60);"
-		class="bg-white"
-	/>
-</div>
-<div class="absolute left-4 top-4 z-10 flex flex-col items-end">
-	<!-- Add recording controls -->
-	<div class="controls">
-		{#if !isRecording}
-			<button class="bg-gray-300 p-1 text-xs" onclick={startRecording}
-				>Start Recording Pattern</button
-			>
-		{:else}
-			<button class="bg-gray-300 p-1 text-xs" onclick={stopRecording}>Stop Recording Pattern</button
-			>
-		{/if}
+<div class="flex flex-col">
+	<div class="flex h-80 w-80 items-center justify-center overflow-hidden bg-gray-100">
+		<canvas
+			{width}
+			{height}
+			bind:this={canvas}
+			onclick={handleCellClick}
+			onmousemove={handleMovePixel}
+			onmouseleave={handleLeave}
+			onmouseup={() => {
+				isRecording && (pixelBuffer = null);
+			}}
+			style="image-rendering: pixelated; transform: scale(30, 30);"
+			class=" bg-white"
+		/>
 	</div>
-
-	<!-- Add recording indicator -->
-	{#if isRecording}
-		<div class="recording-indicator">Recording Pattern...</div>
-	{/if}
+	<div class="flex flex-col items-center justify-center">
+		<!-- Add recording controls -->
+		<div class="my-8">
+			<Button color="fancy" onclick={() => (isRecording ? stopRecording() : startRecording())}
+				>{isRecording ? 'Stop Recording' : 'Start Recording'}</Button
+			>
+		</div>
+	</div>
 </div>
