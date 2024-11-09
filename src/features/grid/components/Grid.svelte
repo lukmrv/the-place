@@ -23,7 +23,9 @@
 	let imageData: ImageData;
 	let rect: DOMRect;
 
-	let zoom = $state(5);
+	const maxZoom = 30;
+	const minZoom = 2;
+	let zoom = $state(3);
 	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
 	let transform = $state({ x: 0, y: 0 });
 	let selectedPattern = $state<keyof typeof patterns>('pixel');
@@ -274,7 +276,7 @@
 	const handleScroll = async (e: WheelEvent) => {
 		const dir = Math.sign(e.deltaY);
 		zoom -= dir;
-		zoom = Math.max(5, Math.min(30, zoom));
+		zoom = Math.max(minZoom, Math.min(maxZoom, zoom));
 	};
 	const setColor = (color: Color) => {
 		selectedColor = color;
@@ -284,13 +286,10 @@
 <!-- svelte-ignore element_invalid_self_closing_tag -->
 <div
 	class:cursor-wait={saving}
-	class="flex h-screen w-full items-center justify-center overflow-hidden bg-gray-300"
+	class="flex h-full w-full items-center justify-center overflow-hidden bg-gray-300"
 >
 	<div class:pointer-events-none={saving} style={`transform: scale(${zoom}, ${zoom});`}>
-		<div
-			class="overflow-hidden bg-white"
-			style={`transform: translate(${transform.x}px, ${transform.y}px);`}
-		>
+		<div class=" bg-white" style={`transform: translate(${transform.x}px, ${transform.y}px);`}>
 			<canvas
 				{width}
 				{height}

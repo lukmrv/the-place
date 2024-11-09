@@ -1,5 +1,5 @@
-export const width = 100;
-export const height = 100;
+export const width = 220;
+export const height = 220;
 
 export const colorsPalette = {
 	red: [255, 69, 0, 255],
