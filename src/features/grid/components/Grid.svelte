@@ -6,15 +6,11 @@
 	import type { Color, Coordinates, Pixel } from '../types';
 	import { colorsPalette, height, width } from '../const';
 	import ColorOption from './ColorOption.svelte';
-	import { create_tree, duck, pepe } from '../patterns';
 	import { getHoveredPixelColor, mapPixelDataToColor } from '../utils';
-
-	const patterns = {
-		pixel: null,
-		pepe,
-		duck,
-		tree: create_tree('autumn') // 805px
-	};
+	import Modal from '../../../components/Modal.svelte';
+	import Button from '../../../components/Button.svelte';
+	import { patterns } from '../patterns/index';
+	import Settings from './Settings.svelte';
 
 	let ws: WebSocket;
 
@@ -23,21 +19,21 @@
 	let imageData: ImageData;
 	let rect: DOMRect;
 
-	const maxZoom = 30;
-	const minZoom = 2;
+	let mainGridSettingsDialog = $state<HTMLDialogElement | undefined>();
 	let zoom = $state(3);
 	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
 	let transform = $state({ x: 0, y: 0 });
 	let selectedPattern = $state<keyof typeof patterns>('pixel');
 	let saving = $state<boolean>(false);
+	let cursorPosition = $state<{ x: number; y: number } | null>(null);
+	let showCursorPosition = $state(false);
 
+	const maxZoom = 30;
+	const minZoom = 2;
 	let isDragging = false;
 	let pixelBuffer: Pixel | null = null;
 	let patternBuffer: Pixel[] = [];
 	let dragThreshold: Coordinates | null = null;
-
-	let cursorPosition = $state<{ x: number; y: number } | null>(null);
-	let showCursorPosition = $state(true);
 
 	onMount(() => {
 		(async () => {
@@ -254,10 +250,12 @@
 
 	const handleMove = (e: MouseEvent) => {
 		const offset = getPixelOffset(e);
+		// if (selectedPattern == 'pixel') {
 		cursorPosition = {
 			x: offset % width,
 			y: Math.floor(offset / width)
 		};
+		// }
 
 		if (selectedPattern === 'pixel') {
 			handleMovePixel(e);
@@ -340,21 +338,13 @@
 		{/each}
 	</div>
 
-	<label class="absolute right-4 top-4 z-10 flex flex-col items-end">
-		<span class="text-xs">Select Pattern</span>
-		<select bind:value={selectedPattern} class="w-40 border border-gray-300 bg-white p-1 text-xs">
-			{#each Object.entries(patterns) as [patternName]}
-				<option value={patternName}>
-					{patternName}
-				</option>
-			{/each}
-		</select>
-	</label>
-
-	<label class="absolute right-4 top-20 z-10 flex items-center gap-2 bg-white px-2 py-1 text-xs">
-		<input type="checkbox" bind:checked={showCursorPosition} />
-		show pixel position
-	</label>
+	<Button class="absolute right-4 top-4" onclick={() => mainGridSettingsDialog?.showModal()}
+		>settings</Button
+	>
+	<Modal bind:dialog={mainGridSettingsDialog}>
+		{#snippet header()}Settings{/snippet}
+		<Settings bind:showCursorPosition bind:selectedPattern {mainGridSettingsDialog} />
+	</Modal>
 </div>
 
 <style>
