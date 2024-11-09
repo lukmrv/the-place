@@ -36,6 +36,9 @@
 	let patternBuffer: Pixel[] = [];
 	let dragThreshold: Coordinates | null = null;
 
+	let cursorPosition = $state<{ x: number; y: number } | null>(null);
+	let showCursorPosition = $state(true);
+
 	onMount(() => {
 		(async () => {
 			const gridState = await getGridState();
@@ -250,6 +253,12 @@
 	};
 
 	const handleMove = (e: MouseEvent) => {
+		const offset = getPixelOffset(e);
+		cursorPosition = {
+			x: offset % width,
+			y: Math.floor(offset / width)
+		};
+
 		if (selectedPattern === 'pixel') {
 			handleMovePixel(e);
 		} else {
@@ -259,6 +268,7 @@
 
 	// clear buffer
 	const handleLeave = () => {
+		cursorPosition = null;
 		if (pixelBuffer) {
 			insertPixelAt(pixelBuffer.color, pixelBuffer.offset);
 		}
@@ -308,6 +318,18 @@
 			/>
 		</div>
 	</div>
+
+	{#if showCursorPosition && cursorPosition}
+		<div
+			class="pointer-events-none absolute z-20 w-16 rounded bg-black/25 px-2 py-1 text-center text-xs text-white"
+			style="left: {rect?.left + cursorPosition.x * zoom - 70}px; top: {rect?.top +
+				cursorPosition.y * zoom -
+				26}px"
+		>
+			{cursorPosition.x}, {cursorPosition.y}
+		</div>
+	{/if}
+
 	<div class="absolute bottom-4 z-10 flex gap-2 border-2 border-gray-300 bg-white p-2">
 		{#each Object.keys(colorsPalette) as (keyof typeof colorsPalette)[] as colorOption}
 			<ColorOption
@@ -327,6 +349,11 @@
 				</option>
 			{/each}
 		</select>
+	</label>
+
+	<label class="absolute right-4 top-20 z-10 flex items-center gap-2 bg-white px-2 py-1 text-xs">
+		<input type="checkbox" bind:checked={showCursorPosition} />
+		show pixel position
 	</label>
 </div>
 
