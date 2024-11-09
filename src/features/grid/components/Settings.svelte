@@ -14,11 +14,11 @@
 	const isCheckboxDisabled = $derived(selectedPattern !== 'pixel');
 
 	const handlePatternChange = (e: HTMLInputElement) => {
-		console.log('e', e.value);
 		if (e.value !== 'pixel') {
 			showCursorPosition = false;
 		}
 
+		mainGridSettingsDialog?.close();
 		return e.value;
 	};
 </script>

@@ -1,6 +1,6 @@
 import type { Pattern } from '../types';
 
-export const pepe: Pattern = [
+export const pepe_smol: Pattern = [
 	{
 		x: 0,
 		y: 0,

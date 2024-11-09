@@ -1,8 +1,8 @@
 import type { Pattern, Pixel } from './types';
 
-// 4, 8, 16, 24
-export const width = 12;
-export const height = 12;
+// 4, 8, 12
+export const width = 8;
+export const height = 8;
 export const scaleFactor = (() => {
 	const targetGridSize = 320; // Total grid width/height in pixels
 

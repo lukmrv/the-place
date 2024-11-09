@@ -4,7 +4,7 @@
 
 	import { webSocketManager } from '../../../websocket-manager';
 	import type { Color, Coordinates, Pixel } from '../types';
-	import { colorsPalette, height, width } from '../const';
+	import { colorsPalette } from '../const';
 	import ColorOption from './ColorOption.svelte';
 	import { getHoveredPixelColor, mapPixelDataToColor } from '../utils';
 	import Modal from '../../../components/Modal.svelte';
@@ -13,6 +13,9 @@
 	import Settings from './Settings.svelte';
 
 	let ws: WebSocket;
+
+	const height = 220;
+	const width = 220;
 
 	let canvas: HTMLCanvasElement;
 	let context: CanvasRenderingContext2D;

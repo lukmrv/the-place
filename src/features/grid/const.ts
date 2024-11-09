@@ -1,6 +1,3 @@
-export const width = 220;
-export const height = 220;
-
 export const colorsPalette = {
 	red: [255, 69, 0, 255],
 	orange: [255, 168, 0, 255],
