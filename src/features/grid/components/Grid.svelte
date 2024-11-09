@@ -12,31 +12,29 @@
 	import { patterns } from '../patterns/index';
 	import Settings from './Settings.svelte';
 
-	let ws: WebSocket;
-
-	const height = 220;
-	const width = 220;
-
 	let canvas: HTMLCanvasElement;
 	let context: CanvasRenderingContext2D;
 	let imageData: ImageData;
 	let rect: DOMRect;
 
+	let ws: WebSocket;
+	const height = 120;
+	const width = 120;
+	const maxZoom = 30;
+	const minZoom = 3;
+	let isDragging = false;
+	let pixelBuffer: Pixel | null = null;
+	let patternBuffer: Pixel[] = [];
+	let dragThreshold: Coordinates | null = null;
+
 	let mainGridSettingsDialog = $state<HTMLDialogElement | undefined>();
-	let zoom = $state(3);
+	let zoom = $state(7);
 	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
 	let transform = $state({ x: 0, y: 0 });
 	let selectedPattern = $state<keyof typeof patterns>('pixel');
 	let saving = $state<boolean>(false);
 	let cursorPosition = $state<{ x: number; y: number } | null>(null);
 	let showCursorPosition = $state(false);
-
-	const maxZoom = 30;
-	const minZoom = 2;
-	let isDragging = false;
-	let pixelBuffer: Pixel | null = null;
-	let patternBuffer: Pixel[] = [];
-	let dragThreshold: Coordinates | null = null;
 
 	onMount(() => {
 		(async () => {

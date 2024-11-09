@@ -16,9 +16,9 @@
 	const handlePatternChange = (e: HTMLInputElement) => {
 		if (e.value !== 'pixel') {
 			showCursorPosition = false;
+			mainGridSettingsDialog?.close();
 		}
 
-		mainGridSettingsDialog?.close();
 		return e.value;
 	};
 </script>
