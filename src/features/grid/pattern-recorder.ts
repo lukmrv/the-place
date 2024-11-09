@@ -24,7 +24,6 @@ export class PatternRecorder {
 
 	savePattern(): Pattern {
 		const finalPattern = this.pattern;
-		this.clearPattern();
 		return finalPattern;
 	}
 

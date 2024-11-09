@@ -39,7 +39,6 @@
 
 		console.log('Recorded Pattern:', pattern);
 
-		clearPattern();
 		dialog?.close();
 	};
 
