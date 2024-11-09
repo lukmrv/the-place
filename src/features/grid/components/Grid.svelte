@@ -196,58 +196,69 @@
 
 	const handleMovePattern = (e: MouseEvent) => {
 		if (saving) return;
+		const isButtonPressed = e.buttons === 1;
+
+		// Handle dragging early and skip pattern rendering
+		if (isButtonPressed && dragThresholdReached(e)) {
+			if (!isDragging) {
+				// Clear pattern preview when starting to drag
+				if (patternBuffer.length > 0) {
+					const tempImageData = context.getImageData(0, 0, width, height);
+					for (const { offset, color } of patternBuffer) {
+						tempImageData.data.set(colorsPalette[color], offset * 4);
+					}
+					context.putImageData(tempImageData, 0, 0);
+					patternBuffer = [];
+				}
+			}
+
+			isDragging = true;
+			dragThreshold = null;
+
+			const zoomFactor = 1 / zoom;
+			transform.x += e.movementX * zoomFactor;
+			transform.y += e.movementY * zoomFactor;
+			return;
+		}
+
 		const offset = getPixelOffset(e);
 		const centerX = offset % width;
 		const centerY = Math.floor(offset / width);
-		const isButtonPressed = e.buttons === 1;
 
-		// Clear previous pattern preview
+		// Create a temporary ImageData to batch our changes
+		const tempImageData = context.getImageData(0, 0, width, height);
+
+		// Restore previous pattern pixels
 		if (patternBuffer.length > 0) {
-			for (let i = 0; i < patternBuffer.length; i++) {
-				const { offset, color } = patternBuffer[i];
-				insertPixelAt(color, offset);
+			for (const { offset, color } of patternBuffer) {
+				tempImageData.data.set(colorsPalette[color], offset * 4);
 			}
-			patternBuffer = [];
 		}
+
+		patternBuffer = [];
 
 		// Draw new pattern preview
 		const pattern = patterns[selectedPattern]!;
-		for (let i = 0; i < pattern.length; i++) {
-			const { x: dx, y: dy, color: patternColor } = pattern[i];
+		for (const { x: dx, y: dy, color: patternColor } of pattern) {
 			const x = centerX + dx;
 			const y = centerY + dy;
 
 			if (x < 0 || x >= width || y < 0 || y >= height) continue;
 
 			const currentOffset = y * width + x;
-			const currentColor = getHoveredPixelColor({ imageData, offset: currentOffset });
+			const currentColor = getHoveredPixelColor({
+				imageData: tempImageData,
+				offset: currentOffset
+			});
 			patternBuffer.push({ offset: currentOffset, color: currentColor });
-			insertPixelAt(patternColor, currentOffset);
+			tempImageData.data.set(colorsPalette[patternColor], currentOffset * 4);
 		}
 
-		// HANDLE DRAG
+		// Update canvas with all changes at once
+		context.putImageData(tempImageData, 0, 0);
+
 		if (!isButtonPressed) {
 			isDragging = false;
-		}
-		if (isButtonPressed) {
-			if (dragThresholdReached(e)) {
-				isDragging = true;
-				dragThreshold = null;
-
-				const zoomFactor = 1 / zoom;
-				transform.x += e.movementX * zoomFactor;
-				transform.y += e.movementY * zoomFactor;
-
-				// Clear pattern preview when dragging
-				if (patternBuffer.length > 0) {
-					for (let i = 0; i < patternBuffer.length; i++) {
-						const { offset, color } = patternBuffer[i];
-						insertPixelAt(color, offset);
-					}
-					patternBuffer = [];
-				}
-				return;
-			}
 		}
 	};
 
