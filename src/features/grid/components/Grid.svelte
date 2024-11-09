@@ -6,14 +6,17 @@
 	import type { Color, Coordinates, Pixel } from '../types';
 	import { colorsPalette, height, width } from '../const';
 	import ColorOption from './ColorOption.svelte';
-	import { create_tree, dog, duck, pacman, heart } from '../patterns';
+	import { create_tree, dog, duck, pacman, heart, bird, elo } from '../patterns';
+	import { getHoveredPixelColor, mapPixelDataToColor } from '../utils';
 
 	const patterns = {
 		pixel: null,
 		dog,
+		bird,
 		heart,
-		duck, // 90px
-		pacman, // 150px
+		elo,
+		duck,
+		pacman,
 		tree: create_tree('autumn') // 805px
 	};
 
@@ -54,21 +57,6 @@
 		return () => ws.close();
 	});
 
-	const mapPixelDataToColor = ({ r, g, b, a }: { r: number; g: number; b: number; a: number }) => {
-		return Object.entries(colorsPalette).find(
-			([, color]) => color[0] === r && color[1] === g && color[2] === b
-		)?.[0] as keyof typeof colorsPalette;
-	};
-
-	const getHoveredPixelColor = (offset: number) => {
-		const r = imageData.data?.[offset * 4];
-		const g = imageData.data?.[offset * 4 + 1];
-		const b = imageData.data?.[offset * 4 + 2];
-		const a = imageData.data?.[offset * 4 + 3];
-
-		return mapPixelDataToColor({ r, g, b, a });
-	};
-
 	const getPixelOffset = (event: MouseEvent) => {
 		rect = canvas.getBoundingClientRect();
 		const scaleX = canvas.width / rect.width;
@@ -85,12 +73,7 @@
 
 	// mutate imageDataObject
 	const insertPixelAt = (color: Color, offset: number) => {
-		if (saving) return;
-		const [r, g, b, a] = colorsPalette[color];
-		imageData.data[offset * 4] = r;
-		imageData.data[offset * 4 + 1] = g;
-		imageData.data[offset * 4 + 2] = b;
-		imageData.data[offset * 4 + 3] = a;
+		imageData.data.set(colorsPalette[color], offset * 4);
 		context.putImageData(imageData, 0, 0);
 	};
 	const dragThresholdReached = (e: MouseEvent) =>
@@ -163,8 +146,9 @@
 	};
 
 	const handleMovePixel = (e: MouseEvent) => {
+		if (saving) return;
 		const offset = getPixelOffset(e);
-		const color = getHoveredPixelColor(offset);
+		const color = getHoveredPixelColor({ imageData, offset });
 		const isButtonPressed = e.buttons === 1;
 		const hoveredPixelChanged = offset !== pixelBuffer?.offset;
 
@@ -211,6 +195,7 @@
 	};
 
 	const handleMovePattern = (e: MouseEvent) => {
+		if (saving) return;
 		const offset = getPixelOffset(e);
 		const centerX = offset % width;
 		const centerY = Math.floor(offset / width);
@@ -235,7 +220,7 @@
 			if (x < 0 || x >= width || y < 0 || y >= height) continue;
 
 			const currentOffset = y * width + x;
-			const currentColor = getHoveredPixelColor(currentOffset);
+			const currentColor = getHoveredPixelColor({ imageData, offset: currentOffset });
 			patternBuffer.push({ offset: currentOffset, color: currentColor });
 			insertPixelAt(patternColor, currentOffset);
 		}

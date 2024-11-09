@@ -104,6 +104,352 @@ export const duck: Pattern = [
 	{ x: 6, y: -5, color: 'orange' }
 ];
 
+export const bird: Pattern = [
+	{
+		x: 0,
+		y: 0,
+		color: 'red'
+	},
+	{
+		x: 0,
+		y: -2,
+		color: 'red'
+	},
+	{
+		x: 0,
+		y: -1,
+		color: 'red'
+	},
+	{
+		x: -4,
+		y: -3,
+		color: 'black'
+	},
+	{
+		x: -2,
+		y: -3,
+		color: 'black'
+	},
+	{
+		x: -3,
+		y: -3,
+		color: 'black'
+	},
+	{
+		x: -1,
+		y: -3,
+		color: 'black'
+	},
+	{
+		x: 0,
+		y: -3,
+		color: 'black'
+	},
+	{
+		x: 1,
+		y: -3,
+		color: 'black'
+	},
+	{
+		x: 3,
+		y: -3,
+		color: 'black'
+	},
+	{
+		x: 2,
+		y: -3,
+		color: 'black'
+	},
+	{
+		x: 4,
+		y: -3,
+		color: 'black'
+	},
+	{
+		x: 1,
+		y: -4,
+		color: 'black'
+	},
+	{
+		x: 2,
+		y: -4,
+		color: 'black'
+	},
+	{
+		x: 4,
+		y: -4,
+		color: 'black'
+	},
+	{
+		x: 3,
+		y: -4,
+		color: 'black'
+	},
+	{
+		x: 1,
+		y: -5,
+		color: 'black'
+	},
+	{
+		x: 2,
+		y: -5,
+		color: 'black'
+	},
+	{
+		x: 3,
+		y: -5,
+		color: 'black'
+	},
+	{
+		x: 4,
+		y: -5,
+		color: 'black'
+	},
+	{
+		x: 3,
+		y: -6,
+		color: 'black'
+	},
+	{
+		x: 1,
+		y: -6,
+		color: 'black'
+	},
+	{
+		x: 2,
+		y: -6,
+		color: 'black'
+	},
+	{
+		x: 4,
+		y: -6,
+		color: 'black'
+	},
+	{
+		x: 3,
+		y: -7,
+		color: 'black'
+	},
+	{
+		x: 2,
+		y: -7,
+		color: 'black'
+	},
+	{
+		x: 1,
+		y: -7,
+		color: 'black'
+	},
+	{
+		x: 4,
+		y: -7,
+		color: 'black'
+	},
+	{
+		x: 2,
+		y: -8,
+		color: 'black'
+	},
+	{
+		x: 1,
+		y: -8,
+		color: 'black'
+	},
+	{
+		x: 3,
+		y: -8,
+		color: 'black'
+	},
+	{
+		x: 4,
+		y: -8,
+		color: 'black'
+	}
+];
+
+export const elo: Pattern = [
+	{
+		x: 0,
+		y: 0,
+		color: 'red'
+	},
+	{
+		x: 1,
+		y: 0,
+		color: 'red'
+	},
+	{
+		x: 2,
+		y: 0,
+		color: 'red'
+	},
+	{
+		x: 3,
+		y: 0,
+		color: 'red'
+	},
+	{
+		x: 4,
+		y: 0,
+		color: 'red'
+	},
+	{
+		x: 5,
+		y: 0,
+		color: 'red'
+	},
+	{
+		x: 6,
+		y: 0,
+		color: 'red'
+	},
+	{
+		x: 6,
+		y: 1,
+		color: 'red'
+	},
+	{
+		x: 6,
+		y: 2,
+		color: 'red'
+	},
+	{
+		x: 6,
+		y: 3,
+		color: 'red'
+	},
+	{
+		x: 6,
+		y: 4,
+		color: 'red'
+	},
+	{
+		x: 6,
+		y: 5,
+		color: 'red'
+	},
+	{
+		x: 5,
+		y: 5,
+		color: 'red'
+	},
+	{
+		x: 4,
+		y: 5,
+		color: 'red'
+	},
+	{
+		x: 3,
+		y: 5,
+		color: 'red'
+	},
+	{
+		x: 2,
+		y: 5,
+		color: 'red'
+	},
+	{
+		x: 1,
+		y: 5,
+		color: 'red'
+	},
+	{
+		x: 0,
+		y: 5,
+		color: 'red'
+	},
+	{
+		x: 0,
+		y: 4,
+		color: 'red'
+	},
+	{
+		x: 0,
+		y: 3,
+		color: 'red'
+	},
+	{
+		x: 0,
+		y: 2,
+		color: 'red'
+	},
+	{
+		x: 0,
+		y: 1,
+		color: 'red'
+	},
+	{
+		x: 1,
+		y: 1,
+		color: 'red'
+	},
+	{
+		x: 2,
+		y: 1,
+		color: 'red'
+	},
+	{
+		x: 3,
+		y: 1,
+		color: 'red'
+	},
+	{
+		x: 4,
+		y: 1,
+		color: 'red'
+	},
+	{
+		x: 5,
+		y: 1,
+		color: 'red'
+	},
+	{
+		x: 5,
+		y: 2,
+		color: 'red'
+	},
+	{
+		x: 5,
+		y: 3,
+		color: 'red'
+	},
+	{
+		x: 5,
+		y: 4,
+		color: 'red'
+	},
+	{
+		x: 4,
+		y: 4,
+		color: 'red'
+	},
+	{
+		x: 3,
+		y: 4,
+		color: 'red'
+	},
+	{
+		x: 1,
+		y: 4,
+		color: 'red'
+	},
+	{
+		x: 2,
+		y: 4,
+		color: 'red'
+	},
+	{
+		x: 1,
+		y: 3,
+		color: 'red'
+	},
+	{
+		x: 1,
+		y: 2,
+		color: 'red'
+	}
+];
+
 export const heart: Pattern = [
 	{
 		x: 0,

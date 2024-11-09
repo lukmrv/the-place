@@ -2,8 +2,12 @@
 	import { onMount } from 'svelte';
 	import type { Color, Coordinates, Pixel } from '../types';
 	import { colorsPalette } from '../const';
-	import { height, PatternRecorder, width } from '../pattern-recorder';
-	import Button from '../../../components/Button.svelte';
+	import { height, PatternRecorder, scaleFactor, width } from '../pattern-recorder';
+	import { getHoveredPixelColor } from '../utils';
+	import ColorOption from './ColorOption.svelte';
+	import { twMerge } from 'tailwind-merge';
+
+	let { dialog }: { dialog?: HTMLDialogElement } = $props();
 
 	const patternRecorder = new PatternRecorder();
 
@@ -24,31 +28,25 @@
 		imageData = new ImageData(new Uint8ClampedArray(whiteArray), width, height);
 	});
 
-	function handleCellClick(e: MouseEvent) {
+	const handleCellClick = (e: MouseEvent) => {
 		const offset = getPixelOffset(e);
-		const color = getHoveredPixelColor(offset);
+		const color = getHoveredPixelColor({ imageData, offset });
 		patternRecorder.addPixel({ offset, color });
-	}
-
-	function savePattern() {
-		const pattern = patternRecorder.savePattern();
-		console.log('Recorded Pattern:', pattern);
-		// You can emit this pattern to parent component or handle it as needed
-	}
-
-	const mapPixelDataToColor = ({ r, g, b, a }: { r: number; g: number; b: number; a: number }) => {
-		return Object.entries(colorsPalette).find(
-			([, color]) => color[0] === r && color[1] === g && color[2] === b
-		)?.[0] as keyof typeof colorsPalette;
 	};
 
-	const getHoveredPixelColor = (offset: number) => {
-		const r = imageData.data?.[offset * 4];
-		const g = imageData.data?.[offset * 4 + 1];
-		const b = imageData.data?.[offset * 4 + 2];
-		const a = imageData.data?.[offset * 4 + 3];
+	const savePattern = () => {
+		const pattern = patternRecorder.savePattern();
 
-		return mapPixelDataToColor({ r, g, b, a });
+		console.log('Recorded Pattern:', pattern);
+
+		clearPattern();
+		dialog?.close();
+	};
+
+	const clearPattern = () => {
+		imageData.data.fill(255);
+		context.putImageData(imageData, 0, 0);
+		patternRecorder.clearPattern();
 	};
 
 	const getPixelOffset = (event: MouseEvent) => {
@@ -67,18 +65,14 @@
 
 	// mutate imageDataObject
 	const insertPixelAt = (color: Color, offset: number) => {
-		if (saving) return;
-		const [r, g, b, a] = colorsPalette[color];
-		imageData.data[offset * 4] = r;
-		imageData.data[offset * 4 + 1] = g;
-		imageData.data[offset * 4 + 2] = b;
-		imageData.data[offset * 4 + 3] = a;
+		imageData.data.set(colorsPalette[color], offset * 4);
 		context.putImageData(imageData, 0, 0);
 	};
 
 	const handleMovePixel = (e: MouseEvent) => {
+		if (saving) return;
 		const offset = getPixelOffset(e);
-		const color = getHoveredPixelColor(offset);
+		const color = getHoveredPixelColor({ imageData, offset });
 		const hoveredPixelChanged = offset !== pixelBuffer?.offset;
 
 		// HANDLE ENTER
@@ -109,11 +103,22 @@
 		}
 		pixelBuffer = null;
 	};
+
+	const setColor = (color: Color) => {
+		selectedColor = color;
+	};
 </script>
 
 <!-- svelte-ignore element_invalid_self_closing_tag -->
-<div class="flex flex-col">
-	<div class="flex h-80 w-80 items-center justify-center overflow-hidden bg-gray-100">
+<div class="flex flex-1 flex-col items-center gap-4 bg-gray-100">
+	<div class="mt-4 text-lg font-bold text-gray-400">
+		{width} x {height}
+	</div>
+
+	<div
+		class="mx-8 flex items-center justify-center overflow-hidden"
+		style={`height: ${height * scaleFactor}px; width: ${width * scaleFactor}px;`}
+	>
 		<canvas
 			{width}
 			{height}
@@ -124,28 +129,34 @@
 			onmouseup={() => {
 				pixelBuffer = null;
 			}}
-			style="image-rendering: pixelated; transform: scale(30, 30);"
+			style={`image-rendering: pixelated; transform: scale(${scaleFactor}, ${scaleFactor});`}
 			class=" bg-white"
 		/>
 	</div>
-	<button
-		class="flex h-10 flex-col items-center justify-center bg-gray-700 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors duration-200 ease-in-out"
-		onclick={savePattern}
-	>
-		<svg
-			class="mr-2 h-4 w-4"
-			fill="none"
-			stroke="currentColor"
-			viewBox="0 0 24 24"
-			xmlns="http://www.w3.org/2000/svg"
-		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+
+	<div class="flex w-80 flex-wrap justify-center gap-2">
+		{#each Object.keys(colorsPalette) as (keyof typeof colorsPalette)[] as colorOption}
+			<ColorOption
+				size="sm"
+				onclick={() => setColor(colorOption)}
+				selected={selectedColor === colorOption}
+				color={colorsPalette[colorOption]}
 			/>
-		</svg>
-		Save Pattern
-	</button>
+		{/each}
+	</div>
+
+	<div class="flex w-full justify-center">
+		<button
+			class="flex h-10 flex-1 flex-col items-center justify-center bg-gray-700 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors duration-200 ease-in-out hover:bg-gray-600 active:bg-gray-800"
+			onclick={clearPattern}
+		>
+			Clear pattern
+		</button>
+		<button
+			class="flex h-10 flex-1 flex-col items-center justify-center bg-gray-700 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors duration-200 ease-in-out hover:bg-gray-600 active:bg-gray-800"
+			onclick={savePattern}
+		>
+			Save Pattern
+		</button>
+	</div>
 </div>

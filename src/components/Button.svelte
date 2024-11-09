@@ -169,6 +169,11 @@
 
 <style>
 	button {
+		background-color: red;
+		color: white;
+		font-weight: bold;
+		text-transform: uppercase;
+
 		box-shadow:
 			0px 0px 0 2px red,
 			0px 0px 0 0px transparent,

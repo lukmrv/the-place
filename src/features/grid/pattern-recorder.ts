@@ -1,7 +1,17 @@
 import type { Pattern, Pixel } from './types';
 
-export const width = 8;
-export const height = 8;
+// 4, 8, 16, 24
+export const width = 16;
+export const height = 16;
+export const scaleFactor = (() => {
+	const targetGridSize = 320; // Total grid width/height in pixels
+
+	// Use the larger dimension to ensure grid fits within target size
+	const largerDimension = Math.max(width, height);
+
+	// Calculate scale factor to achieve target size
+	return Math.floor(targetGridSize / largerDimension);
+})();
 
 export class PatternRecorder {
 	private pattern: Pattern = [];
@@ -13,8 +23,7 @@ export class PatternRecorder {
 	}
 
 	savePattern(): Pattern {
-		console.log('Saving pattern:', this.pattern);
-		const finalPattern = [...this.pattern];
+		const finalPattern = this.pattern;
 		this.clearPattern();
 		return finalPattern;
 	}
@@ -36,14 +45,18 @@ export class PatternRecorder {
 		const offsetX = x - originX;
 		const offsetY = y - originY;
 
-		// Check if pixel with these coordinates already exists
-		const exists = this.pattern.some((p) => p.x === offsetX && p.y === offsetY);
-		if (!exists) {
-			this.pattern.push({ x: offsetX, y: offsetY, color: pixel.color });
+		// If pixel is white, remove any existing pixel at this position
+		if (pixel.color === 'white') {
+			this.pattern = this.pattern.filter((p) => p.x !== offsetX || p.y !== offsetY);
+			return;
 		}
+
+		// Remove any existing pixel at these coordinates before adding the new one
+		this.pattern = this.pattern.filter((p) => p.x !== offsetX || p.y !== offsetY);
+		this.pattern.push({ x: offsetX, y: offsetY, color: pixel.color });
 	}
 
 	getCurrentPattern(): Pattern {
-		return [...this.pattern];
+		return this.pattern;
 	}
 }
