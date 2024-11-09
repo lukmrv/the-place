@@ -250,12 +250,10 @@
 
 	const handleMove = (e: MouseEvent) => {
 		const offset = getPixelOffset(e);
-		// if (selectedPattern == 'pixel') {
 		cursorPosition = {
 			x: offset % width,
 			y: Math.floor(offset / width)
 		};
-		// }
 
 		if (selectedPattern === 'pixel') {
 			handleMovePixel(e);
