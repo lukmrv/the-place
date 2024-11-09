@@ -104,421 +104,215 @@ export const duck: Pattern = [
 	{ x: 6, y: -5, color: 'orange' }
 ];
 
-export const bird: Pattern = [
+export const pepe: Pattern = [
 	{
 		x: 0,
 		y: 0,
-		color: 'red'
+		color: 'blue'
 	},
 	{
-		x: 0,
-		y: -2,
-		color: 'red'
+		x: 1,
+		y: 0,
+		color: 'blue'
+	},
+	{
+		x: 2,
+		y: 0,
+		color: 'blue'
+	},
+	{
+		x: 3,
+		y: 0,
+		color: 'blue'
+	},
+	{
+		x: 4,
+		y: 0,
+		color: 'blue'
+	},
+	{
+		x: 6,
+		y: 0,
+		color: 'blue'
+	},
+	{
+		x: 5,
+		y: 0,
+		color: 'blue'
 	},
 	{
 		x: 0,
 		y: -1,
-		color: 'red'
-	},
-	{
-		x: -4,
-		y: -3,
-		color: 'black'
-	},
-	{
-		x: -2,
-		y: -3,
-		color: 'black'
-	},
-	{
-		x: -3,
-		y: -3,
-		color: 'black'
-	},
-	{
-		x: -1,
-		y: -3,
-		color: 'black'
+		color: 'darkGreen'
 	},
 	{
 		x: 0,
-		y: -3,
-		color: 'black'
+		y: -2,
+		color: 'darkGreen'
 	},
 	{
 		x: 1,
-		y: -3,
-		color: 'black'
-	},
-	{
-		x: 3,
-		y: -3,
-		color: 'black'
-	},
-	{
-		x: 2,
-		y: -3,
-		color: 'black'
-	},
-	{
-		x: 4,
-		y: -3,
-		color: 'black'
+		y: -2,
+		color: 'darkGreen'
 	},
 	{
 		x: 1,
-		y: -4,
-		color: 'black'
-	},
-	{
-		x: 2,
-		y: -4,
-		color: 'black'
-	},
-	{
-		x: 4,
-		y: -4,
-		color: 'black'
-	},
-	{
-		x: 3,
-		y: -4,
-		color: 'black'
-	},
-	{
-		x: 1,
-		y: -5,
-		color: 'black'
-	},
-	{
-		x: 2,
-		y: -5,
-		color: 'black'
-	},
-	{
-		x: 3,
-		y: -5,
-		color: 'black'
-	},
-	{
-		x: 4,
-		y: -5,
-		color: 'black'
-	},
-	{
-		x: 3,
-		y: -6,
-		color: 'black'
-	},
-	{
-		x: 1,
-		y: -6,
-		color: 'black'
-	},
-	{
-		x: 2,
-		y: -6,
-		color: 'black'
-	},
-	{
-		x: 4,
-		y: -6,
-		color: 'black'
-	},
-	{
-		x: 3,
-		y: -7,
-		color: 'black'
-	},
-	{
-		x: 2,
-		y: -7,
-		color: 'black'
-	},
-	{
-		x: 1,
-		y: -7,
-		color: 'black'
-	},
-	{
-		x: 4,
-		y: -7,
-		color: 'black'
-	},
-	{
-		x: 2,
-		y: -8,
-		color: 'black'
-	},
-	{
-		x: 1,
-		y: -8,
-		color: 'black'
-	},
-	{
-		x: 3,
-		y: -8,
-		color: 'black'
-	},
-	{
-		x: 4,
-		y: -8,
-		color: 'black'
-	}
-];
-
-export const elo: Pattern = [
-	{
-		x: 0,
-		y: 0,
-		color: 'red'
-	},
-	{
-		x: 1,
-		y: 0,
-		color: 'red'
-	},
-	{
-		x: 2,
-		y: 0,
-		color: 'red'
-	},
-	{
-		x: 3,
-		y: 0,
-		color: 'red'
-	},
-	{
-		x: 4,
-		y: 0,
-		color: 'red'
-	},
-	{
-		x: 5,
-		y: 0,
-		color: 'red'
-	},
-	{
-		x: 6,
-		y: 0,
-		color: 'red'
-	},
-	{
-		x: 6,
-		y: 1,
-		color: 'red'
-	},
-	{
-		x: 6,
-		y: 2,
-		color: 'red'
-	},
-	{
-		x: 6,
-		y: 3,
-		color: 'red'
-	},
-	{
-		x: 6,
-		y: 4,
-		color: 'red'
-	},
-	{
-		x: 6,
-		y: 5,
-		color: 'red'
-	},
-	{
-		x: 5,
-		y: 5,
-		color: 'red'
-	},
-	{
-		x: 4,
-		y: 5,
-		color: 'red'
-	},
-	{
-		x: 3,
-		y: 5,
-		color: 'red'
-	},
-	{
-		x: 2,
-		y: 5,
-		color: 'red'
-	},
-	{
-		x: 1,
-		y: 5,
-		color: 'red'
-	},
-	{
-		x: 0,
-		y: 5,
-		color: 'red'
-	},
-	{
-		x: 0,
-		y: 4,
-		color: 'red'
-	},
-	{
-		x: 0,
-		y: 3,
-		color: 'red'
-	},
-	{
-		x: 0,
-		y: 2,
-		color: 'red'
-	},
-	{
-		x: 0,
-		y: 1,
-		color: 'red'
-	},
-	{
-		x: 1,
-		y: 1,
-		color: 'red'
-	},
-	{
-		x: 2,
-		y: 1,
-		color: 'red'
-	},
-	{
-		x: 3,
-		y: 1,
-		color: 'red'
-	},
-	{
-		x: 4,
-		y: 1,
-		color: 'red'
-	},
-	{
-		x: 5,
-		y: 1,
-		color: 'red'
-	},
-	{
-		x: 5,
-		y: 2,
-		color: 'red'
-	},
-	{
-		x: 5,
-		y: 3,
-		color: 'red'
-	},
-	{
-		x: 5,
-		y: 4,
-		color: 'red'
-	},
-	{
-		x: 4,
-		y: 4,
-		color: 'red'
-	},
-	{
-		x: 3,
-		y: 4,
-		color: 'red'
-	},
-	{
-		x: 1,
-		y: 4,
-		color: 'red'
-	},
-	{
-		x: 2,
-		y: 4,
-		color: 'red'
-	},
-	{
-		x: 1,
-		y: 3,
-		color: 'red'
-	},
-	{
-		x: 1,
-		y: 2,
-		color: 'red'
-	}
-];
-
-export const heart: Pattern = [
-	{
-		x: 0,
-		y: 0,
-		color: 'red'
-	},
-	{
-		x: -1,
 		y: -1,
-		color: 'red'
+		color: 'darkGreen'
 	},
 	{
-		x: -2,
+		x: 2,
+		y: -1,
+		color: 'darkGreen'
+	},
+	{
+		x: 3,
+		y: -1,
+		color: 'darkGreen'
+	},
+	{
+		x: 4,
+		y: -1,
+		color: 'darkGreen'
+	},
+	{
+		x: 5,
+		y: -1,
+		color: 'darkGreen'
+	},
+	{
+		x: 6,
+		y: -1,
+		color: 'darkGreen'
+	},
+	{
+		x: 2,
+		y: -2,
+		color: 'darkGreen'
+	},
+	{
+		x: 3,
+		y: -2,
+		color: 'darkGreen'
+	},
+	{
+		x: 1,
+		y: -3,
+		color: 'darkGreen'
+	},
+	{
+		x: 1,
+		y: -4,
+		color: 'darkGreen'
+	},
+	{
+		x: 2,
+		y: -5,
+		color: 'darkGreen'
+	},
+	{
+		x: 2,
+		y: -4,
+		color: 'darkGreen'
+	},
+	{
+		x: 2,
+		y: -3,
+		color: 'darkGreen'
+	},
+	{
+		x: 3,
+		y: -6,
+		color: 'darkGreen'
+	},
+	{
+		x: 4,
+		y: -6,
+		color: 'darkGreen'
+	},
+	{
+		x: 4,
+		y: -5,
+		color: 'darkGreen'
+	},
+	{
+		x: 3,
+		y: -5,
+		color: 'darkGreen'
+	},
+	{
+		x: 4,
+		y: -3,
+		color: 'darkGreen'
+	},
+	{
+		x: 3,
+		y: -3,
+		color: 'darkGreen'
+	},
+	{
+		x: 5,
+		y: -5,
+		color: 'darkGreen'
+	},
+	{
+		x: 6,
+		y: -6,
+		color: 'darkGreen'
+	},
+	{
+		x: 7,
+		y: -6,
+		color: 'darkGreen'
+	},
+	{
+		x: 8,
+		y: -5,
+		color: 'darkGreen'
+	},
+	{
+		x: 7,
+		y: -5,
+		color: 'darkGreen'
+	},
+	{
+		x: 6,
+		y: -5,
+		color: 'darkGreen'
+	},
+	{
+		x: 8,
+		y: -4,
+		color: 'darkGreen'
+	},
+	{
+		x: 7,
+		y: -3,
+		color: 'darkGreen'
+	},
+	{
+		x: 6,
+		y: -3,
+		color: 'darkGreen'
+	},
+	{
+		x: 5,
+		y: -3,
+		color: 'darkGreen'
+	},
+	{
+		x: 7,
 		y: -2,
 		color: 'red'
 	},
 	{
-		x: -3,
-		y: -3,
-		color: 'red'
-	},
-	{
-		x: -3,
-		y: -4,
-		color: 'red'
-	},
-	{
-		x: -2,
-		y: -5,
-		color: 'red'
-	},
-	{
-		x: -1,
-		y: -6,
-		color: 'red'
-	},
-	{
-		x: 0,
-		y: -6,
-		color: 'red'
-	},
-	{
-		x: 1,
-		y: -5,
-		color: 'red'
-	},
-	{
-		x: 2,
-		y: -6,
-		color: 'red'
-	},
-	{
-		x: 3,
-		y: -6,
-		color: 'red'
-	},
-	{
-		x: 4,
-		y: -5,
+		x: 6,
+		y: -2,
 		color: 'red'
 	},
 	{
 		x: 5,
-		y: -4,
-		color: 'red'
-	},
-	{
-		x: 5,
-		y: -3,
+		y: -2,
 		color: 'red'
 	},
 	{
@@ -527,412 +321,15 @@ export const heart: Pattern = [
 		color: 'red'
 	},
 	{
-		x: 3,
-		y: -1,
-		color: 'red'
-	},
-	{
-		x: 2,
-		y: 0,
-		color: 'red'
-	},
-	{
-		x: 1,
-		y: 1,
-		color: 'red'
-	}
-];
-
-export const dog: Pattern = [
-	{
-		x: 0,
-		y: 0,
-		color: 'black'
-	},
-	{
-		x: 0,
-		y: -1,
-		color: 'black'
-	},
-	{
-		x: 0,
-		y: -2,
-		color: 'black'
-	},
-	{
-		x: 0,
-		y: -3,
-		color: 'black'
-	},
-	{
-		x: 0,
-		y: -4,
-		color: 'black'
-	},
-	{
-		x: 0,
-		y: -5,
-		color: 'black'
-	},
-	{
-		x: 1,
-		y: -6,
-		color: 'black'
-	},
-	{
-		x: 1,
-		y: -7,
-		color: 'black'
-	},
-	{
-		x: 2,
-		y: -8,
-		color: 'black'
-	},
-	{
-		x: 3,
-		y: -9,
-		color: 'black'
-	},
-	{
 		x: 4,
-		y: -10,
-		color: 'black'
-	},
-	{
-		x: 5,
-		y: -11,
-		color: 'black'
-	},
-	{
-		x: 6,
-		y: -11,
+		y: -4,
 		color: 'black'
 	},
 	{
 		x: 7,
-		y: -12,
-		color: 'black'
-	},
-	{
-		x: 8,
-		y: -12,
-		color: 'black'
-	},
-	{
-		x: 9,
-		y: -12,
-		color: 'black'
-	},
-	{
-		x: 10,
-		y: -12,
-		color: 'black'
-	},
-	{
-		x: 11,
-		y: -12,
-		color: 'black'
-	},
-	{
-		x: 12,
-		y: -12,
-		color: 'black'
-	},
-	{
-		x: 13,
-		y: -12,
-		color: 'black'
-	},
-	{
-		x: 14,
-		y: -11,
-		color: 'black'
-	},
-	{
-		x: 15,
-		y: -11,
-		color: 'black'
-	},
-	{
-		x: 16,
-		y: -10,
-		color: 'black'
-	},
-	{
-		x: 17,
-		y: -9,
-		color: 'black'
-	},
-	{
-		x: 18,
-		y: -8,
-		color: 'black'
-	},
-	{
-		x: 19,
-		y: -7,
-		color: 'black'
-	},
-	{
-		x: 19,
-		y: -6,
-		color: 'black'
-	},
-	{
-		x: 20,
-		y: -5,
-		color: 'black'
-	},
-	{
-		x: 20,
 		y: -4,
-		color: 'black'
-	},
-	{
-		x: 20,
-		y: -3,
-		color: 'black'
-	},
-	{
-		x: 20,
-		y: -2,
-		color: 'black'
-	},
-	{
-		x: 20,
-		y: -1,
-		color: 'black'
-	},
-	{
-		x: 20,
-		y: 0,
-		color: 'black'
-	},
-	{
-		x: 19,
-		y: 1,
-		color: 'black'
-	},
-	{
-		x: 18,
-		y: 1,
-		color: 'black'
-	},
-	{
-		x: 18,
-		y: 2,
-		color: 'black'
-	},
-	{
-		x: 18,
-		y: 3,
-		color: 'black'
-	},
-	{
-		x: 18,
-		y: 4,
-		color: 'black'
-	},
-	{
-		x: 17,
-		y: 5,
-		color: 'black'
-	},
-	{
-		x: 16,
-		y: 6,
-		color: 'black'
-	},
-	{
-		x: 15,
-		y: 6,
-		color: 'black'
-	},
-	{
-		x: 14,
-		y: 7,
-		color: 'black'
-	},
-	{
-		x: 13,
-		y: 7,
-		color: 'black'
-	},
-	{
-		x: 12,
-		y: 7,
-		color: 'black'
-	},
-	{
-		x: 11,
-		y: 7,
-		color: 'black'
-	},
-	{
-		x: 10,
-		y: 7,
-		color: 'black'
-	},
-	{
-		x: 9,
-		y: 7,
-		color: 'black'
-	},
-	{
-		x: 8,
-		y: 7,
-		color: 'black'
-	},
-	{
-		x: 7,
-		y: 7,
-		color: 'black'
-	},
-	{
-		x: 6,
-		y: 7,
-		color: 'black'
-	},
-	{
-		x: 5,
-		y: 6,
-		color: 'black'
-	},
-	{
-		x: 4,
-		y: 6,
-		color: 'black'
-	},
-	{
-		x: 3,
-		y: 5,
-		color: 'black'
-	},
-	{
-		x: 2,
-		y: 4,
-		color: 'black'
-	},
-	{
-		x: 2,
-		y: 3,
-		color: 'black'
-	},
-	{
-		x: 2,
-		y: 2,
-		color: 'black'
-	},
-	{
-		x: 2,
-		y: 1,
-		color: 'black'
-	},
-	{
-		x: 1,
-		y: 1,
-		color: 'black'
-	},
-	{
-		x: 3,
-		y: 0,
-		color: 'black'
-	},
-	{
-		x: 3,
-		y: -1,
-		color: 'black'
-	},
-	{
-		x: 3,
-		y: -3,
-		color: 'black'
-	},
-	{
-		x: 3,
-		y: -5,
-		color: 'black'
-	},
-	{
-		x: 3,
-		y: -4,
-		color: 'black'
-	},
-	{
-		x: 4,
-		y: -6,
-		color: 'black'
-	},
-	{
-		x: 5,
-		y: -7,
-		color: 'black'
-	},
-	{
-		x: 6,
-		y: -7,
 		color: 'black'
 	}
-];
-
-export const pacman: Pattern = [
-	// Pacman body - yellow
-	{ x: 0, y: 0, color: 'yellow' },
-	{ x: -1, y: 0, color: 'yellow' },
-	{ x: 1, y: 0, color: 'yellow' },
-	{ x: -2, y: -1, color: 'yellow' },
-	{ x: -1, y: -1, color: 'yellow' },
-	{ x: 0, y: -1, color: 'yellow' },
-	{ x: 1, y: -1, color: 'yellow' },
-	{ x: -2, y: -2, color: 'yellow' },
-	{ x: -1, y: -2, color: 'yellow' },
-	{ x: 0, y: -2, color: 'yellow' },
-	{ x: -2, y: -3, color: 'yellow' },
-	{ x: -1, y: -3, color: 'yellow' },
-	{ x: 0, y: -3, color: 'yellow' },
-	{ x: -2, y: -4, color: 'yellow' },
-	{ x: -1, y: -4, color: 'yellow' },
-	{ x: 0, y: -4, color: 'yellow' },
-	{ x: 1, y: -4, color: 'yellow' },
-	{ x: -1, y: -5, color: 'yellow' },
-	{ x: 0, y: -5, color: 'yellow' },
-	{ x: 1, y: -5, color: 'yellow' },
-	{ x: 0, y: -6, color: 'yellow' },
-	{ x: 1, y: -6, color: 'yellow' },
-
-	// Pacman outline - black
-	{ x: -2, y: 0, color: 'black' },
-	{ x: 2, y: 0, color: 'black' },
-	{ x: -3, y: -1, color: 'black' },
-	{ x: 2, y: -1, color: 'black' },
-	{ x: -3, y: -2, color: 'black' },
-	{ x: 1, y: -2, color: 'black' },
-	{ x: -3, y: -3, color: 'black' },
-	{ x: 1, y: -3, color: 'black' },
-	{ x: -3, y: -4, color: 'black' },
-	{ x: 2, y: -4, color: 'black' },
-	{ x: -2, y: -5, color: 'black' },
-	{ x: 2, y: -5, color: 'black' },
-	{ x: -1, y: -6, color: 'black' },
-	{ x: 2, y: -6, color: 'black' },
-	{ x: 0, y: -7, color: 'black' },
-	{ x: 1, y: -7, color: 'black' },
-
-	// Pacman eye - black
-	{ x: 0, y: -2, color: 'black' },
-
-	// Dots that Pacman eats - white
-	{ x: 4, y: -3, color: 'white' },
-	{ x: 7, y: -3, color: 'white' },
-	{ x: 10, y: -3, color: 'white' },
-	{ x: 13, y: -3, color: 'white' },
-
-	// Power pellet - white
-	{ x: 16, y: -3, color: 'white' },
-	{ x: 17, y: -3, color: 'white' },
-	{ x: 16, y: -4, color: 'white' },
-	{ x: 17, y: -4, color: 'white' }
 ];
 
 export const create_tree = (color: 'autumn' | 'summer' | 'alien'): Pattern => {

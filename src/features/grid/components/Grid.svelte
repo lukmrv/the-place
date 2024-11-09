@@ -6,17 +6,13 @@
 	import type { Color, Coordinates, Pixel } from '../types';
 	import { colorsPalette, height, width } from '../const';
 	import ColorOption from './ColorOption.svelte';
-	import { create_tree, dog, duck, pacman, heart, bird, elo } from '../patterns';
+	import { create_tree, duck, pepe } from '../patterns';
 	import { getHoveredPixelColor, mapPixelDataToColor } from '../utils';
 
 	const patterns = {
 		pixel: null,
-		dog,
-		bird,
-		heart,
-		elo,
+		pepe,
 		duck,
-		pacman,
 		tree: create_tree('autumn') // 805px
 	};
 
@@ -288,11 +284,11 @@
 <!-- svelte-ignore element_invalid_self_closing_tag -->
 <div
 	class:cursor-wait={saving}
-	class="flex h-full w-full items-center justify-center overflow-hidden bg-gray-100"
+	class="flex h-screen w-full items-center justify-center overflow-hidden bg-gray-300"
 >
 	<div class:pointer-events-none={saving} style={`transform: scale(${zoom}, ${zoom});`}>
 		<div
-			class="overflow-hidden"
+			class="overflow-hidden bg-white"
 			style={`transform: translate(${transform.x}px, ${transform.y}px);`}
 		>
 			<canvas
@@ -310,7 +306,6 @@
 				}}
 				onwheel={handleScroll}
 				style="image-rendering: pixelated;"
-				class="bg-white"
 			/>
 		</div>
 	</div>
