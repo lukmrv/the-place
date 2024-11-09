@@ -147,25 +147,47 @@
 
 	const handleMovePixel = (e: MouseEvent) => {
 		if (saving) return;
-		const offset = getPixelOffset(e);
-		const color = getHoveredPixelColor({ imageData, offset });
 		const isButtonPressed = e.buttons === 1;
+
+		// Handle dragging early and skip pixel rendering
+		if (isButtonPressed && dragThresholdReached(e)) {
+			if (!isDragging && pixelBuffer) {
+				// Reset hovered pixel when starting to drag
+				insertPixelAt(pixelBuffer.color, pixelBuffer.offset);
+				pixelBuffer = null;
+			}
+
+			isDragging = true;
+			dragThreshold = null;
+
+			const zoomFactor = 1 / zoom;
+			transform.x += e.movementX * zoomFactor;
+			transform.y += e.movementY * zoomFactor;
+			return;
+		}
+
+		const offset = getPixelOffset(e);
 		const hoveredPixelChanged = offset !== pixelBuffer?.offset;
+
+		// Skip if pixel hasn't changed
+		if (!hoveredPixelChanged && pixelBuffer) return;
+
+		// Create a temporary ImageData to batch our changes
+		const tempImageData = context.getImageData(0, 0, width, height);
+		const color = getHoveredPixelColor({ imageData: tempImageData, offset });
 
 		// HANDLE ENTER
 		if (!pixelBuffer) {
-			insertPixelAt(selectedColor, offset);
+			tempImageData.data.set(colorsPalette[selectedColor], offset * 4);
 			pixelBuffer = {
 				offset,
 				color
 			};
-		}
-
-		if (pixelBuffer && hoveredPixelChanged) {
+		} else if (hoveredPixelChanged) {
 			// restore buffer pixel
-			insertPixelAt(pixelBuffer.color, pixelBuffer.offset);
+			tempImageData.data.set(colorsPalette[pixelBuffer.color], pixelBuffer.offset * 4);
 			// set hovered pixel
-			insertPixelAt(selectedColor, offset);
+			tempImageData.data.set(colorsPalette[selectedColor], offset * 4);
 			// update buffer
 			pixelBuffer = {
 				offset,
@@ -173,24 +195,11 @@
 			};
 		}
 
-		// HANDLE DRAG
+		// Update canvas with all changes at once
+		context.putImageData(tempImageData, 0, 0);
+
 		if (!isButtonPressed) {
 			isDragging = false;
-		}
-		if (isButtonPressed) {
-			if (dragThresholdReached(e)) {
-				isDragging = true;
-				dragThreshold = null;
-
-				const zoomFactor = 1 / zoom;
-				transform.x += e.movementX * zoomFactor;
-				transform.y += e.movementY * zoomFactor;
-
-				// reset hovered pixel on drag
-				if (pixelBuffer) {
-					insertPixelAt(pixelBuffer.color, pixelBuffer.offset);
-				}
-			}
 		}
 	};
 
