@@ -153,7 +153,6 @@
 				// Revert all changes if any pixel fails
 				originalColors.forEach(({ offset, color }) => {
 					insertPixelAt(color, offset);
-					ws.send(JSON.stringify({ offset, r, g, b, a }));
 				});
 				return;
 			} else {
