@@ -1,5 +1,8 @@
 import type { Pattern, Pixel } from './types';
 
+// TODO - add erasing. Right now white pixels are transparent and work as an eraser.
+// I want to add eraser separately, and placing a white pixel should be highlighted somehow
+
 // 4, 8, 12
 export const width = 8;
 export const height = 8;
