@@ -5,18 +5,38 @@
 
 	let { children, data } = $props();
 
+	let loading = $state(false);
+
 	$user = data.user;
 
-	console.log('layout', $user);
+	const logout = async () => {
+		loading = true;
+
+		console.log('logout');
+
+		setTimeout(() => {
+			loading = false;
+		}, 1000);
+	};
+
+	const login = () => {
+		loading = true;
+
+		console.log('login');
+
+		setTimeout(() => {
+			loading = false;
+		}, 1000);
+	};
 </script>
 
 <div>
 	<header class="flex items-center justify-center">
 		<nav>
 			{#if $user}
-				<LoginButton>Logout</LoginButton>
+				<LoginButton {loading} onclick={logout}>Logout</LoginButton>
 			{:else}
-				<LoginButton>Login</LoginButton>
+				<LoginButton {loading} onclick={login}>Login</LoginButton>
 			{/if}
 		</nav>
 	</header>
