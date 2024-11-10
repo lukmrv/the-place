@@ -94,7 +94,6 @@
 		const response = await setPixel(offset, r, g, b, a);
 
 		if (!response) {
-			console.log(hoveredPixelColor);
 			// reset pixel placement
 			insertPixelAt(hoveredPixelColor, offset);
 		} else {
