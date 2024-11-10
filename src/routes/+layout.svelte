@@ -1,13 +1,27 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { user } from '$lib/stores/user';
 	import '../global.css';
+	import LoginButton from '../components/LoadingButton.svelte';
+	import { user } from '../features/user/store';
 
-	$: if ($page.data.user) {
-		user.set($page.data.user);
-	} else {
-		user.set(null);
-	}
+	let { children, data } = $props();
+
+	$user = data.user;
+
+	console.log('layout', $user);
 </script>
 
-<slot />
+<div>
+	<header class="flex items-center justify-center">
+		<nav>
+			{#if $user}
+				<LoginButton>Logout</LoginButton>
+			{:else}
+				<LoginButton>Login</LoginButton>
+			{/if}
+		</nav>
+	</header>
+
+	<main>
+		{@render children()}
+	</main>
+</div>
