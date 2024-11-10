@@ -83,16 +83,24 @@
 		if (isDragging) {
 			return;
 		}
-		const offset = getPixelOffset(e);
-		insertPixelAt(selectedColor, offset);
-		const [r, g, b, a] = colorsPalette[selectedColor];
-		pixelBuffer = {
-			offset: offset,
-			color: selectedColor
-		};
 
-		ws.send(JSON.stringify({ offset, r, g, b, a }));
-		await setPixel(offset, r, g, b, a);
+		const offset = getPixelOffset(e);
+		const hoveredPixelColor = getHoveredPixelColor({ imageData, offset });
+
+		// "optimistic" pixel placement
+		insertPixelAt(selectedColor, offset);
+
+		const [r, g, b, a] = colorsPalette[selectedColor];
+		const response = await setPixel(offset, r, g, b, a);
+
+		if (!response) {
+			console.log(hoveredPixelColor);
+			// reset pixel placement
+			insertPixelAt(hoveredPixelColor, offset);
+		} else {
+			ws.send(JSON.stringify({ offset, r, g, b, a }));
+			pixelBuffer = null;
+		}
 	};
 
 	const savePattern = async (e: MouseEvent) => {
@@ -116,6 +124,10 @@
 		}
 
 		const pattern = patterns[selectedPattern]!;
+		const originalColors: { offset: number; color: Color }[] = [];
+		const pixelsToUpdate: { offset: number; r: number; g: number; b: number; a: number }[] = [];
+
+		// Store original colors and prepare updates
 		for (let i = 0; i < pattern.length; i++) {
 			const { x: dx, y: dy, color: patternColor } = pattern[i];
 			const x = centerX + dx;
@@ -125,12 +137,36 @@
 			if (x < 0 || x >= width || y < 0 || y >= height) continue;
 
 			const currentOffset = y * width + x;
-			const [r, g, b, a] = colorsPalette[patternColor];
+			const originalColor = getHoveredPixelColor({ imageData, offset: currentOffset });
+			originalColors.push({ offset: currentOffset, color: originalColor });
 
-			insertPixelAt(patternColor, currentOffset);
-			ws.send(JSON.stringify({ offset: currentOffset, r, g, b, a }));
-			await setPixel(currentOffset, r, g, b, a);
+			const [r, g, b, a] = colorsPalette[patternColor];
+			pixelsToUpdate.push({ offset: currentOffset, r, g, b, a });
+
+			// Optimistically place the pixel
+			// insertPixelAt(patternColor, currentOffset);
 		}
+
+		// Try to save pixels one by one and return early if any fails
+		for (const { offset, r, g, b, a } of pixelsToUpdate) {
+			const success = await setPixel(offset, r, g, b, a);
+			if (!success) {
+				// Revert all changes if any pixel fails
+				originalColors.forEach(({ offset, color }) => {
+					insertPixelAt(color, offset);
+					ws.send(JSON.stringify({ offset, r, g, b, a }));
+				});
+				return;
+			} else {
+				insertPixelAt(mapPixelDataToColor({ r, g, b, a }), offset);
+				ws.send(JSON.stringify({ offset, r, g, b, a }));
+			}
+		}
+
+		// If we got here, all pixels were saved successfully
+		// pixelsToUpdate.forEach((update) => {
+		// 	ws.send(JSON.stringify(update));
+		// });
 	};
 
 	const handleClick = async (e: MouseEvent) => {
