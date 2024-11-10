@@ -1,11 +1,13 @@
 <script lang="ts">
+	import { page } from '$app/stores';
+	import { user } from '$lib/stores/user';
 	import '../global.css';
 
-	let { children } = $props();
+	$: if ($page.data.user) {
+		user.set($page.data.user);
+	} else {
+		user.set(null);
+	}
 </script>
 
-<div>
-	<main>
-		{@render children()}
-	</main>
-</div>
+<slot />
