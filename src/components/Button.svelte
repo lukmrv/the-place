@@ -1,54 +1,16 @@
 <script lang="ts">
-	import { twMerge } from 'tailwind-merge';
-	import { getContext, onMount } from 'svelte';
+	// TODO - refactor this button component
+	import { onMount, type Snippet } from 'svelte';
 
 	import { onDestroy } from 'svelte';
-	import type { HTMLButtonAttributes, HTMLAnchorAttributes } from 'svelte/elements';
+	import type { HTMLButtonAttributes } from 'svelte/elements';
+	import { twMerge } from 'tailwind-merge';
 
-	type SizeType = 'sm' | 'md' | 'lg';
+	type ButtonProps = {
+		children: Snippet;
+	} & HTMLButtonAttributes;
 
-	type CommonProps = {
-		size?: SizeType;
-		tag?: 'a' | 'button' | 'label';
-	};
-
-	type AnchorProps = CommonProps &
-		Omit<HTMLAnchorAttributes, 'type'> & {
-			href?: string | undefined;
-		};
-
-	type ButtonProps = CommonProps &
-		HTMLButtonAttributes & {
-			disabled?: HTMLButtonAttributes['disabled'];
-			type?: HTMLButtonAttributes['type'];
-		};
-
-	type $$Props = AnchorProps | ButtonProps;
-
-	const group: SizeType = getContext('group');
-
-	export let size: NonNullable<$$Props['size']> = group ? 'sm' : 'md';
-	export let href: string | undefined = undefined;
-	export let type: HTMLButtonAttributes['type'] = 'button';
-	export let tag: $$Props['tag'] = 'button';
-	export let disabled: HTMLButtonAttributes['disabled'] = false;
-
-	const sizeClasses: Record<SizeType, string> = {
-		sm: 'px-4 py-2 text-sm',
-		md: 'px-5 py-2.5 text-sm',
-		lg: 'px-5 py-3 text-base'
-	};
-
-	let buttonClass: string;
-	$: buttonClass = twMerge(
-		'text-center font-medium',
-		group ? 'focus-within:ring-2' : 'focus-within:ring-4',
-		group && 'focus-within:z-10',
-		group || 'focus-within:outline-none',
-		'inline-flex items-center justify-center ' + sizeClasses[size],
-		disabled && 'cursor-not-allowed opacity-50',
-		$$props.class
-	);
+	let { children, class: className, ...rest }: ButtonProps = $props();
 
 	let isPressed = false;
 	let pressProgress = 0;
@@ -87,23 +49,23 @@
 
 		// Initial shadow offsets
 		const shadowOffsets = [
-			{ x: 0, y: 0, spread: 2, color: 'red' },
-			{ x: 2, y: 2, spread: 1, color: 'white' },
-			{ x: 3, y: 3, spread: 2, color: 'green' },
-			{ x: 5, y: 5, spread: 1, color: 'white' },
-			{ x: 6, y: 6, spread: 2, color: 'blue' }
+			{ x: 0, y: 0, spread: 2, color: 'rgba(255, 0, 0, 1)' }, // Red
+			{ x: 2, y: 2, spread: 1, color: 'rgba(255, 255, 255, 1)' }, // White
+			{ x: 3, y: 3, spread: 2, color: 'rgba(0, 255, 0, 1)' }, // Green
+			{ x: 5, y: 5, spread: 1, color: 'rgba(255, 255, 255, 1)' }, // White
+			{ x: 6, y: 6, spread: 2, color: 'rgba(0, 0, 255, 1)' } // Blue
 		];
 
 		// Compress shadows based on press progress
 		const shadows = shadowOffsets.map((shadow, index) => {
-			const compression = pressProgress * (index * 1);
-			const x = shadow.x - compression;
-			const y = shadow.y - compression;
+			const compression = pressProgress * (index + 1) * 1.2;
+			const x = Math.max(0, shadow.x - compression);
+			const y = Math.max(0, shadow.y - compression);
 			return `${x}px ${y}px 0 ${shadow.spread}px ${shadow.color}`;
 		});
 
 		buttonElement.style.boxShadow = shadows.join(',');
-		buttonElement.style.transform = `translate(${pressProgress * 3}px, ${pressProgress * 3}px)`;
+		buttonElement.style.transform = `translate(${pressProgress * 6}px, ${pressProgress * 6}px)`;
 	}
 
 	onMount(() => {
@@ -117,55 +79,16 @@
 	});
 </script>
 
-{#if href && !disabled}
-	<a
-		{href}
-		{...$$restProps}
-		class={buttonClass}
-		role="button"
-		on:click
-		on:change
-		on:keydown
-		on:keyup
-		on:touchstart|passive
-		on:touchend
-		on:touchcancel
-		on:mouseenter
-		on:mouseleave
-	>
-		<slot />
-	</a>
-{:else if tag === 'label'}
-	<label {...$$restProps} class={buttonClass}>
-		<slot />
-	</label>
-{:else if tag === 'button'}
-	<button
-		bind:this={buttonElement}
-		{type}
-		{...$$restProps}
-		{disabled}
-		class={buttonClass}
-		on:mousedown={handleMouseDown}
-		on:mouseup={handleMouseUp}
-		on:mouseleave={handleMouseUp}
-		on:click
-		on:change
-		on:keydown
-		on:keyup
-		on:touchstart|passive
-		on:touchend
-		on:touchcancel
-		on:mouseenter
-		on:mouseleave
-	>
-		<slot />
-	</button>
-{:else}
-	<svelte:element this={tag} {...$$restProps} class={buttonClass}>
-		<slot />
-	</svelte:element>
-{/if}
+<button
+	bind:this={buttonElement}
+	class={twMerge(className || '', 'px-5 py-2.5')}
+	onmousedown={handleMouseDown}
+	onmouseup={handleMouseUp}
+	onmouseleave={handleMouseUp}
+	{...rest}
+>
+	{@render children()}
+</button>
 
 <style>
 	button {
@@ -173,18 +96,15 @@
 		color: white;
 		font-weight: bold;
 		text-transform: uppercase;
-
+		border: none;
+		cursor: pointer;
+		transition: transform 0.1s ease-out;
+		/* Default shadow state */
 		box-shadow:
-			0px 0px 0 2px red,
-			0px 0px 0 0px transparent,
-			0px 0px 0 0px transparent,
-			0px 0px 0 0px transparent,
-			0px 0px 0 0px transparent;
-		transform: translate(0, 0);
-		transition: transform 0.1s ease;
-	}
-
-	button:hover {
-		animation: shadow-appear 0.1s forwards;
+			0px 0px 0 2px rgba(255, 0, 0, 1),
+			2px 2px 0 1px rgba(255, 255, 255, 1),
+			3px 3px 0 2px rgba(0, 255, 0, 1),
+			5px 5px 0 1px rgba(255, 255, 255, 1),
+			6px 6px 0 2px rgba(0, 0, 255, 1);
 	}
 </style>

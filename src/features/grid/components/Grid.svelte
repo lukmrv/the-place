@@ -390,15 +390,15 @@
 			/>
 		{/each}
 	</div>
-
-	<Button class="absolute right-4 top-4" onclick={() => mainGridSettingsDialog?.showModal()}
-		>settings</Button
-	>
-	<Modal bind:dialog={mainGridSettingsDialog}>
-		{#snippet header()}Settings{/snippet}
-		<Settings bind:showCursorPosition bind:selectedPattern {mainGridSettingsDialog} />
-	</Modal>
 </div>
+
+<Button class="absolute right-4 top-4" onclick={() => mainGridSettingsDialog?.showModal()}
+	>settings</Button
+>
+<Modal bind:dialog={mainGridSettingsDialog}>
+	{#snippet header()}Settings{/snippet}
+	<Settings bind:showCursorPosition bind:selectedPattern {mainGridSettingsDialog} />
+</Modal>
 
 <style>
 </style>
