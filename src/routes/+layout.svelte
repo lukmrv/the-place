@@ -2,6 +2,7 @@
 	import '../global.css';
 	import LoginButton from '../components/LoadingButton.svelte';
 	import { user } from '../features/user/store';
+	import { goto } from '$app/navigation';
 
 	let { children, data } = $props();
 
@@ -22,11 +23,7 @@
 	const login = () => {
 		loading = true;
 
-		console.log('login');
-
-		setTimeout(() => {
-			loading = false;
-		}, 1000);
+		goto('/signin');
 	};
 </script>
 

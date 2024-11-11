@@ -1,3 +1,29 @@
+User clicks "Sign in with Google" on your frontend
+
+Frontend redirects to Google's consent screen
+
+Google redirects back to your frontend with an authorization code
+
+Frontend sends this code to your backend
+
+Backend verifies the code with Google and creates a session
+
+Backend sends back a session token to frontend
+
+Frontend stores the token and uses it for subsequent requests
+
+Let's implement this step by step:
+
+First, you'll need to set up a project in Google Cloud Console and get credentials:
+
+Go to Google Cloud Console
+
+Create a project
+
+Enable Google OAuth2 API
+
+Create OAuth 2.0 credentials (you'll need client ID and client secret)
+
 # sv
 
 Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).

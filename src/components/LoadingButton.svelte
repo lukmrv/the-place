@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { HTMLButtonAttributes } from 'svelte/elements';
+	import { twMerge } from 'tailwind-merge';
 
 	type LoadingButtonProps = {
 		loading: boolean;
@@ -10,7 +11,11 @@
 	let { loading, children, ...rest }: LoadingButtonProps = $props();
 </script>
 
-<button class="cursor-not-allowed disabled:opacity-25" disabled={loading} {...rest}>
+<button
+	class={twMerge('cursor-not-allowed', loading ? 'disabled:opacity-25' : '')}
+	disabled={loading}
+	{...rest}
+>
 	<span class:hidden={loading}>
 		{@render children()}
 	</span>

@@ -13,4 +13,21 @@ declare global {
 	}
 }
 
+// Add to your existing types
+interface UserData {
+	id: string;
+	email: string;
+	name: string;
+	// Add other user fields as needed
+}
+
+declare global {
+	namespace App {
+		interface PageData {
+			user?: UserData;
+		}
+		// ... other existing interfaces
+	}
+}
+
 export {};
