@@ -4,6 +4,8 @@ import type { LayoutServerLoad } from './$types';
 export const load: LayoutServerLoad = async ({ fetch }) => {
 	try {
 		const userData = await checkAuthStatus();
+
+		console.log('userData', userData);
 		return {
 			user: userData
 		};

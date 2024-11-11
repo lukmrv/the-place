@@ -29,7 +29,7 @@
 
 <div>
 	<header class="flex items-center justify-center">
-		<nav>
+		<nav class="absolute right-1/2 top-4 z-20 flex translate-x-1/2 items-center justify-center">
 			{#if $user}
 				<LoginButton {loading} onclick={logout}>Logout</LoginButton>
 			{:else}

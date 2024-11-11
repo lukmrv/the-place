@@ -8,11 +8,15 @@
 		children: Snippet;
 	} & HTMLButtonAttributes;
 
-	let { loading, children, ...rest }: LoadingButtonProps = $props();
+	let { loading, children, class: className, ...rest }: LoadingButtonProps = $props();
 </script>
 
 <button
-	class={twMerge('cursor-not-allowed', loading ? 'disabled:opacity-25' : '')}
+	class={twMerge(
+		'min-w-[80px] border border-gray-300 bg-white px-5 py-2.5 hover:bg-gray-100',
+		loading ? 'cursor-not-allowed disabled:opacity-25' : '',
+		className || ''
+	)}
 	disabled={loading}
 	{...rest}
 >
@@ -21,7 +25,10 @@
 	</span>
 
 	{#if loading}
-		<span class="loader"></span>
+		<span class="flex items-center justify-center">
+			&nbsp;
+			<span class="loader"></span>
+		</span>
 	{/if}
 </button>
 
