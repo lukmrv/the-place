@@ -1,40 +1,23 @@
 <script lang="ts">
 	import '../global.css';
-	import LoginButton from '../components/LoadingButton.svelte';
-	import { user } from '../features/user/store';
-	import { goto } from '$app/navigation';
+	import Button from '../components/Button.svelte';
+	import { signIn, signOut } from '../features/auth/service';
 
 	let { children, data } = $props();
-
-	let loading = $state(false);
-
-	$user = data.user;
-
-	const logout = async () => {
-		loading = true;
-
-		console.log('logout');
-
-		setTimeout(() => {
-			loading = false;
-		}, 1000);
-	};
-
-	const login = () => {
-		loading = true;
-
-		goto('/signin');
-	};
 </script>
 
 <div>
 	<header class="flex items-center justify-center">
 		<nav class="absolute right-1/2 top-4 z-20 flex translate-x-1/2 items-center justify-center">
-			{#if $user}
-				<LoginButton {loading} onclick={logout}>Logout</LoginButton>
-			{:else}
-				<LoginButton {loading} onclick={login}>Login</LoginButton>
-			{/if}
+			{#await data.user}
+				<Button onclick={() => null}>........</Button>
+			{:then user}
+				{#if user?.id}
+					<Button onclick={signOut}>Logout</Button>
+				{:else}
+					<Button onclick={signIn}>Login</Button>
+				{/if}
+			{/await}
 		</nav>
 	</header>
 

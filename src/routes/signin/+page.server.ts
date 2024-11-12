@@ -4,32 +4,16 @@ import type { PageServerLoad } from './$types';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const load: PageServerLoad = async ({ cookies }) => {
-	// First check if user is already authenticated
-	const id = cookies.get('id');
-	const rid = cookies.get('rid');
+export const load: PageServerLoad = async ({ cookies, url }) => {
+	// TODO: change base url to env
+	const referer = url.searchParams.get('referer') || 'http://localhost:5173/';
 
-	if (id && rid) {
-		// User is already logged in, fetch their info from your API
-		try {
-			const response = await fetch(`${API_URL}/user/info`, {
-				headers: {
-					Cookie: `id=${id}; rid=${rid}`
-				},
-				credentials: 'include'
-			});
+	cookies.set('oauth_redirect', referer, {
+		path: '/',
+		httpOnly: true,
+		sameSite: 'lax',
+		maxAge: 60 * 10 // 10 minutes expiry
+	});
 
-			if (response.ok) {
-				const userData = await response.json();
-				return {
-					user: userData
-				};
-			}
-		} catch (error) {
-			console.error('Error fetching user data:', error);
-		}
-	}
-
-	// If not authenticated, redirect to API's Google auth endpoint
 	throw redirect(303, `${API_URL}/auth/google`);
 };

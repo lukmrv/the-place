@@ -1,20 +1,22 @@
-export const getUser = async () => {
-	const response = await fetch('/api/user');
-	return response.json();
-};
+import type { User } from './types';
 
-export async function checkAuthStatus() {
+export const checkAuthStatus = async () => {
 	const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/google`, {
-		credentials: 'include' // Important for sending cookies
+		credentials: 'include'
 	});
 	if (!response.ok) {
 		return null;
 	}
 	return await response.json();
-}
-export async function logout() {
-	await fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
-		method: 'POST',
-		credentials: 'include'
-	});
-}
+};
+
+export const getUser = async (): Promise<User | null> => {
+	try {
+		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/me`, {
+			credentials: 'include'
+		});
+		return await response.json();
+	} catch (error) {
+		return null;
+	}
+};
