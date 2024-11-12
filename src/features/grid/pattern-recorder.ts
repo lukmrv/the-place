@@ -4,8 +4,8 @@ import type { Pattern, Pixel } from './types';
 // I want to add eraser separately, and placing a white pixel should be highlighted somehow
 
 // 4, 8, 12
-export const width = 8;
-export const height = 8;
+export const width = 5;
+export const height = 5;
 export const scaleFactor = (() => {
 	const targetGridSize = 320; // Total grid width/height in pixels
 
