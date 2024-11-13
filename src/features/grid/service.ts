@@ -1,7 +1,8 @@
+import type { PageLoad } from '../../routes/$types';
 import { remoteGridStateAdapter } from './adapter';
-import type { Coordinates, Grid, Pattern, Pixel } from './types';
+import type { Grid } from './types';
 
-export async function getGridState(): Promise<Grid | undefined> {
+export async function getGridState(fetch: PageLoad['fetch']): Promise<Grid | undefined> {
 	const response = await fetch('http://localhost:8080/api/get-grid', {
 		credentials: 'include',
 		headers: {
@@ -24,14 +25,16 @@ export const setPixel = async (offset: number, r: number, g: number, b: number, 
 				'Content-Type': 'application/json'
 			}
 		});
+		const data = await response.json();
 
 		if (!response.ok) {
-			throw new Error('Failed to set pixel');
+			alert(data.message);
+			return { error: data.message || 'An error occurred' };
 		}
 
-		return response.json();
+		return { data };
 	} catch (error) {
-		console.error('Failed to set pixel', error);
-		return null;
+		console.log('Failed to set pixel', error);
+		return { error: 'Failed to set pixel' };
 	}
 };

@@ -6,10 +6,9 @@ import type { Grid } from '../features/grid/types';
 
 type LayoutData = {
 	user: Promise<User | undefined>;
-	gridState: Promise<Grid | undefined>;
 };
 
-export const load: PageLoad = async (): Promise<LayoutData> => ({
-	user: getUser(),
-	gridState: getGridState()
+// global user data
+export const load: PageLoad = async ({ fetch }: PageLoad['props']): Promise<LayoutData> => ({
+	user: getUser(fetch)
 });

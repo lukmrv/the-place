@@ -13,16 +13,16 @@
 			<div class="rounded-lg bg-white p-6 shadow">
 				<div class="space-y-4">
 					<div>
-						<label class="block text-sm font-medium text-gray-700">Email</label>
+						<span class="block text-sm font-medium text-gray-700">Email</span>
 						<p class="mt-1">{user.email}</p>
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700">Email</label>
+						<span class="block text-sm font-medium text-gray-700">Email</span>
 						<p class="mt-1">{user.name}</p>
 					</div>
 
 					<div>
-						<label class="block text-sm font-medium text-gray-700">User ID</label>
+						<span class="block text-sm font-medium text-gray-700">User ID</span>
 						<p class="mt-1">{user.id}</p>
 					</div>
 
