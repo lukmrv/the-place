@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getGridState, setPixel } from '../service';
+	import { setPixel } from '../service';
 
 	import { webSocketManager } from '../../../websocket-manager';
 	import type { Color, Coordinates, Pixel } from '../types';
@@ -11,15 +11,20 @@
 	import Button from '../../../components/Button.svelte';
 	import { patterns } from '../patterns/index';
 	import Settings from './Settings.svelte';
+	import type { LayoutData } from '../../../routes/$types';
+
+	let { gridState }: { gridState: Awaited<Awaited<LayoutData>['gridState']> } = $props();
+
+	const width = gridState?.grid.width ?? 0;
+	const height = gridState?.grid.height ?? 0;
+	const pixels = gridState?.pixels ?? new Uint8ClampedArray(0);
 
 	let canvas: HTMLCanvasElement;
 	let context: CanvasRenderingContext2D;
-	let imageData: ImageData;
+	let imageData = new ImageData(pixels, width, height);
 	let rect: DOMRect;
 
 	let ws: WebSocket;
-	const height = 120;
-	const width = 120;
 	const maxZoom = 30;
 	const minZoom = 3;
 	let isDragging = false;
@@ -37,14 +42,9 @@
 	let showCursorPosition = $state(false);
 
 	onMount(() => {
-		(async () => {
-			const gridState = await getGridState();
-			imageData = new ImageData(gridState, width, height);
-			context.putImageData(imageData, 0, 0);
-		})();
-
 		context = canvas.getContext('2d')!;
 		context.imageSmoothingEnabled = false;
+		context.putImageData(imageData, 0, 0);
 
 		ws = webSocketManager();
 		ws.onmessage = (e) => {

@@ -1,13 +1,5 @@
 import type { colorsPalette } from './const';
 
-export type RemoteGridState = {
-	offset: number;
-	r: number;
-	g: number;
-	b: number;
-	a: number;
-}[];
-
 export interface Coordinates {
 	x: number;
 	y: number;
@@ -23,3 +15,18 @@ export interface RecordingDimensions {
 	width: number;
 	height: number;
 }
+
+export type Grid =
+	| {
+			grid: { id: number; width: number; height: number; cooldown_in_ms: number };
+			pixels: Uint8ClampedArray;
+	  }
+	| undefined;
+
+export type RemoteGridState = {
+	offset: number;
+	r: number;
+	g: number;
+	b: number;
+	a: number;
+}[];

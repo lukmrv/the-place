@@ -1,16 +1,17 @@
 import { remoteGridStateAdapter } from './adapter';
-import type { Coordinates, Pattern, Pixel } from './types';
+import type { Coordinates, Grid, Pattern, Pixel } from './types';
 
-export async function getGridState() {
-	const response = await fetch('http://localhost:8080/api/get-grid-state', {
+export async function getGridState(): Promise<Grid | undefined> {
+	const response = await fetch('http://localhost:8080/api/get-grid', {
 		credentials: 'include',
 		headers: {
-			'Content-Type': 'application/json',
-			Authorization: 'Bearer YOUR_ACCESS_TOKEN'
+			'Content-Type': 'application/json'
 		}
 	});
-	const data = await response.json();
-	return remoteGridStateAdapter(data);
+	const grid = await response.json();
+	const transformedGridStateData = remoteGridStateAdapter(grid.pixels);
+
+	return { grid: grid.grid, pixels: transformedGridStateData };
 }
 
 export const setPixel = async (offset: number, r: number, g: number, b: number, a: number) => {
@@ -20,8 +21,7 @@ export const setPixel = async (offset: number, r: number, g: number, b: number, 
 			body: JSON.stringify({ offset, r, g, b, a }),
 			credentials: 'include',
 			headers: {
-				'Content-Type': 'application/json',
-				Authorization: 'Bearer YOUR_ACCESS_TOKEN'
+				'Content-Type': 'application/json'
 			}
 		});
 

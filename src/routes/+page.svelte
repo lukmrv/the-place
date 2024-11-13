@@ -36,9 +36,21 @@
 
 	<Modal bind:dialog={patternRecorderDialog}>
 		{#snippet header()}Create pattern!{/snippet}
-
 		<PatternRecorderBoard dialog={patternRecorderDialog} />
 	</Modal>
 
-	<Grid />
+	{#await data.gridState}
+		<Grid
+			gridState={{
+				grid: { id: 1, width: 120, height: 120, cooldown_in_ms: 1000 },
+				pixels: new Uint8ClampedArray(120 * 120 * 4)
+			}}
+		/>
+	{:then gridState}
+		{#if gridState}
+			<Grid gridState={{ grid: gridState.grid, pixels: gridState.pixels }} />
+		{:else}
+			<div>Oops! Something went wrong.</div>
+		{/if}
+	{/await}
 </div>
