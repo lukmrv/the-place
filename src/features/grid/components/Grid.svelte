@@ -12,6 +12,7 @@
 	import { patterns } from '../patterns/index';
 	import Settings from './Settings.svelte';
 	import type { LayoutData } from '../../../routes/$types';
+	import { addNotification } from '../../../components/notification/notificationStore';
 
 	let { gridState }: { gridState: Awaited<Awaited<LayoutData>['gridState']> } = $props();
 
@@ -21,7 +22,7 @@
 
 	let canvas: HTMLCanvasElement;
 	let context: CanvasRenderingContext2D;
-	let imageData = new ImageData(pixels, width, height);
+	let imageData: ImageData;
 	let rect: DOMRect;
 
 	let ws: WebSocket;
@@ -42,6 +43,7 @@
 	let showCursorPosition = $state(false);
 
 	onMount(() => {
+		imageData = new ImageData(pixels, width, height);
 		context = canvas.getContext('2d')!;
 		context.imageSmoothingEnabled = false;
 		context.putImageData(imageData, 0, 0);

@@ -1,9 +1,23 @@
+import { addNotification } from '../../components/notification/notificationStore';
 import type { PageLoad } from '../../routes/$types';
 import { remoteGridStateAdapter } from './adapter';
 import type { Grid } from './types';
+import { mapPixelDataToColor } from './utils';
+
+const SUCCESS_MESSAGES = [
+	'Tactical placement!',
+	'Are you sure about that?',
+	'Nice pixel!',
+	'Keep creating!',
+	'Artistic genius!',
+	'Good choice!',
+	'Impressive!',
+	'Pixel perfect!',
+	'Great work!'
+];
 
 export async function getGridState(fetch: PageLoad['fetch']): Promise<Grid | undefined> {
-	const response = await fetch('http://localhost:8080/api/get-grid', {
+	const response = await fetch(`${import.meta.env.VITE_API_URL}/api/get-grid`, {
 		credentials: 'include',
 		headers: {
 			'Content-Type': 'application/json'
@@ -17,7 +31,7 @@ export async function getGridState(fetch: PageLoad['fetch']): Promise<Grid | und
 
 export const setPixel = async (offset: number, r: number, g: number, b: number, a: number) => {
 	try {
-		const response = await fetch('http://localhost:8080/api/set-tile', {
+		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/set-tile`, {
 			method: 'POST',
 			body: JSON.stringify({ offset, r, g, b, a }),
 			credentials: 'include',
@@ -28,8 +42,22 @@ export const setPixel = async (offset: number, r: number, g: number, b: number, 
 		const data = await response.json();
 
 		if (!response.ok) {
-			alert(data.message);
-			return { error: data.message || 'An error occurred' };
+			addNotification({
+				message: data.cooldown_in_ms
+					? `${data.message}: ${data.cooldown_in_ms / 1000}s`
+					: data.message,
+				type: 'info',
+				duration: data.cooldown_in_ms
+			});
+
+			return null;
+		} else {
+			const randomMessage = SUCCESS_MESSAGES[Math.floor(Math.random() * SUCCESS_MESSAGES.length)];
+			addNotification({
+				message: randomMessage,
+				type: 'success',
+				duration: 2000
+			});
 		}
 
 		return { data };
