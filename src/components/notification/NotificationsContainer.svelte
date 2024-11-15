@@ -2,8 +2,8 @@
 	import { notifications } from './notificationStore';
 	import Notification from './Notification.svelte';
 
-	let maxNotifications = 3; // Default max number of notifications
-	// Derived store to limit the number of notifications
+	let { maxNotifications }: { maxNotifications: number } = $props();
+
 	let visibleNotifications = $derived($notifications.slice(-maxNotifications));
 </script>
 
