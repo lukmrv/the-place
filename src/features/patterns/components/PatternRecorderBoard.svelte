@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Color, Coordinates, Pixel } from '../types';
-	import { colorsPalette } from '../const';
-	import { height, PatternRecorder, scaleFactor, width } from '../pattern-recorder';
-	import { getHoveredPixelColor } from '../utils';
-	import ColorOption from './ColorOption.svelte';
-	import { twMerge } from 'tailwind-merge';
+	import type { Color, Coordinates, Pixel } from '../../grid/types';
+	import { colorsPalette } from '../../grid/const';
+	import { height, PatternRecorder, scaleFactor, width } from '../../grid/pattern-recorder';
+	import { getHoveredPixelColor } from '../../grid/utils';
+	import ColorOption from '../../grid/components/ColorOption.svelte';
 
 	let { dialog }: { dialog?: HTMLDialogElement } = $props();
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
-	import { notifications, type NotificationType } from './notificationStore';
+	import { notifications, type NotificationType } from './notification-store';
 	import { onMount } from 'svelte';
 	import { twMerge } from 'tailwind-merge';
 

@@ -1,4 +1,4 @@
-import { addNotification } from '../../components/notification/notificationStore';
+import { addNotification } from '../../components/notification/notification-store';
 import type { PageLoad } from '../../routes/$types';
 import { remoteGridStateAdapter } from './adapter';
 import type { Grid } from './types';

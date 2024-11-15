@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { notifications } from './notificationStore';
+	import { notifications } from './notification-store';
 	import Notification from './Notification.svelte';
 
 	let { maxNotifications }: { maxNotifications: number } = $props();

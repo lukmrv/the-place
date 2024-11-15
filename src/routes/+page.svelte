@@ -1,13 +1,17 @@
 <script lang="ts">
 	import Grid from '../features/grid/components/Grid.svelte';
 	import Modal from '../components/Modal.svelte';
-	import PatternRecorderBoard from '../features/grid/components/PatternRecorderBoard.svelte';
 	import Button from '../components/Button.svelte';
 	import { signIn, signOut } from '../features/auth/service';
+	import PatternRecorderBoard from '../features/patterns/components/PatternRecorderBoard.svelte';
+	import { userStore } from '../stores/user-store';
 
+	// local state
 	let patternRecorderDialog = $state<HTMLDialogElement | undefined>();
-
+	// loader state
 	let { data } = $props();
+	// store state initialized in loader
+	const user = userStore.get();
 </script>
 
 <svelte:head>
@@ -17,15 +21,11 @@
 
 <header class="flex items-center justify-center">
 	<nav class="absolute right-1/2 top-4 z-20 flex translate-x-1/2 items-center justify-center">
-		{#await data.user}
-			<Button onclick={() => null}>........</Button>
-		{:then user}
-			{#if user?.id}
-				<Button onclick={signOut}>Logout</Button>
-			{:else}
-				<Button onclick={signIn}>Login</Button>
-			{/if}
-		{/await}
+		{#if user?.id}
+			<Button onclick={signOut}>Logout</Button>
+		{:else}
+			<Button onclick={signIn}>Login</Button>
+		{/if}
 	</nav>
 </header>
 

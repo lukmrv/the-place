@@ -9,10 +9,9 @@
 	import { getHoveredPixelColor, mapPixelDataToColor } from '../utils';
 	import Modal from '../../../components/Modal.svelte';
 	import Button from '../../../components/Button.svelte';
-	import { patterns } from '../patterns/index';
 	import Settings from './Settings.svelte';
 	import type { LayoutData } from '../../../routes/$types';
-	import { addNotification } from '../../../components/notification/notificationStore';
+	import { patternsStore } from '../../../stores/patterns-store';
 
 	let { gridState }: { gridState: Awaited<Awaited<LayoutData>['gridState']> } = $props();
 
@@ -37,10 +36,12 @@
 	let zoom = $state(7);
 	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
 	let transform = $state({ x: 0, y: 0 });
-	let selectedPattern = $state<keyof typeof patterns>('pixel');
+	let selectedPattern = $state<string>('pixel');
 	let saving = $state<boolean>(false);
 	let cursorPosition = $state<{ x: number; y: number } | null>(null);
 	let showCursorPosition = $state(false);
+
+	const patterns = patternsStore.get();
 
 	onMount(() => {
 		imageData = new ImageData(pixels, width, height);
@@ -141,7 +142,7 @@
 			const originalColor = getHoveredPixelColor({ imageData, offset: currentOffset });
 			originalColors.push({ offset: currentOffset, color: originalColor });
 
-			const [r, g, b, a] = colorsPalette[patternColor];
+			const [r, g, b, a] = colorsPalette?.[patternColor as Color];
 			pixelsToUpdate.push({ offset: currentOffset, r, g, b, a });
 
 			// Optimistically place the pixel
@@ -294,7 +295,7 @@
 				offset: currentOffset
 			});
 			patternBuffer.push({ offset: currentOffset, color: currentColor });
-			tempImageData.data.set(colorsPalette[patternColor], currentOffset * 4);
+			tempImageData.data.set(colorsPalette[patternColor as Color], currentOffset * 4);
 		}
 
 		// Update canvas with all changes at once

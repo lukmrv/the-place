@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { patterns } from '../patterns/index';
+	import { patternsStore } from '../../../stores/patterns-store';
 
 	let {
 		showCursorPosition = $bindable(),
@@ -10,6 +10,8 @@
 		selectedPattern: string;
 		mainGridSettingsDialog: HTMLDialogElement | undefined;
 	} = $props();
+
+	const patterns = patternsStore.get();
 
 	const isCheckboxDisabled = $derived(selectedPattern !== 'pixel');
 
@@ -29,17 +31,17 @@
 		Show pixel position
 	</label>
 
-	<select
-		bind:value={selectedPattern}
-		onchange={(e) => handlePatternChange(e.target as HTMLInputElement)}
-		class="w-full border border-gray-300 p-2 text-sm"
-	>
-		{#each Object.entries(patterns) as [patternName]}
-			<option value={patternName}>
-				{patternName}
-			</option>
-		{/each}
-	</select>
+	{#if Object.keys(patterns)?.length > 0}
+		<select
+			bind:value={selectedPattern}
+			onchange={(e) => handlePatternChange(e.target as HTMLInputElement)}
+			class="w-full border border-gray-300 p-2 text-sm"
+		>
+			{#each Object.keys(patterns) as pattern}
+				<option value={pattern}>{pattern}</option>
+			{/each}
+		</select>
+	{/if}
 </div>
 <button
 	class="flex h-10 w-full items-center justify-center bg-gray-700 text-sm font-medium text-white hover:bg-gray-600 active:bg-gray-800"

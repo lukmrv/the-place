@@ -9,7 +9,7 @@ export interface Notification {
 	duration: number;
 }
 
-function createNotificationStore() {
+const createNotificationStore = () => {
 	const { subscribe, update } = writable<Notification[]>([]);
 
 	const remove = (id: string) => {
@@ -26,6 +26,7 @@ function createNotificationStore() {
 
 	return {
 		subscribe,
+		remove,
 		add: (notification: Omit<Notification, 'id'>) => {
 			removeDuplicates(notification);
 
@@ -38,10 +39,9 @@ function createNotificationStore() {
 					remove(id);
 				}, duration);
 			}
-		},
-		remove
+		}
 	};
-}
+};
 
 export const notifications = createNotificationStore();
 
