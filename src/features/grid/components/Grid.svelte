@@ -12,6 +12,10 @@
 	import type { LayoutData } from '../../../routes/$types';
 	import { patternsStore } from '../../../stores/patterns-store';
 	import { colorsStore } from '../../../stores/colors-store';
+	import { browser } from '$app/environment';
+
+	const STORAGE_KEY_TRANSFORM = 'grid_transform';
+	const STORAGE_KEY_ZOOM = 'grid_zoom';
 
 	let { gridState }: { gridState: Awaited<Awaited<LayoutData>['gridState']> } = $props();
 
@@ -19,9 +23,11 @@
 	const height = gridState?.grid.height ?? 0;
 	const pixels = gridState?.pixels ?? new Uint8ClampedArray(0);
 
+	// svelte-ignore non_reactive_update
 	let canvas: HTMLCanvasElement;
 	let context: CanvasRenderingContext2D;
 	let imageData: ImageData;
+	// svelte-ignore non_reactive_update
 	let rect: DOMRect;
 
 	const colorsPalette = colorsStore.get()!;
@@ -35,9 +41,23 @@
 	let dragThreshold: Coordinates | null = null;
 
 	let mainGridSettingsDialog = $state<HTMLDialogElement | undefined>();
-	let zoom = $state(7);
+	let zoom = $state(
+		(() => {
+			const DEFAULT_ZOOM = 7;
+			const savedZoom = browser ? Number(localStorage.getItem(STORAGE_KEY_ZOOM)) : DEFAULT_ZOOM;
+			return savedZoom;
+		})()
+	);
 	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
-	let transform = $state({ x: 0, y: 0 });
+	let transform = $state(
+		(() => {
+			const DEFAULT_TRANSFORM = { x: 0, y: 0 };
+			const savedTransform = browser
+				? JSON.parse(localStorage.getItem(STORAGE_KEY_TRANSFORM) ?? '{}')
+				: DEFAULT_TRANSFORM;
+			return savedTransform;
+		})()
+	);
 	let selectedPattern = $state<string>('pixel');
 	let saving = $state<boolean>(false);
 	let cursorPosition = $state<{ x: number; y: number } | null>(null);
@@ -379,6 +399,7 @@
 		const dir = Math.sign(e.deltaY);
 		zoom -= dir;
 		zoom = Math.max(minZoom, Math.min(maxZoom, zoom));
+		localStorage.setItem(STORAGE_KEY_ZOOM, zoom.toString());
 	};
 	const setColor = (color: Color) => {
 		selectedColor = color;
@@ -386,52 +407,57 @@
 </script>
 
 <!-- svelte-ignore element_invalid_self_closing_tag -->
-<div
-	class:cursor-wait={saving}
-	class="flex h-full w-full items-center justify-center overflow-hidden bg-gray-300"
->
-	<div class:pointer-events-none={saving} style={`transform: scale(${zoom}, ${zoom});`}>
-		<div class=" bg-white" style={`transform: translate(${transform.x}px, ${transform.y}px);`}>
-			<canvas
-				{width}
-				{height}
-				bind:this={canvas}
-				onclick={handleClick}
-				onmousemove={handleMove}
-				onmouseleave={handleLeave}
-				onmousedown={(e) => {
-					dragThreshold = { x: e.clientX, y: e.clientY };
-				}}
-				onmouseup={() => {
-					pixelBuffer = null;
-				}}
-				onwheel={handleScroll}
-				style="image-rendering: pixelated;"
-			/>
+{#if browser}
+	<div
+		class:cursor-wait={saving}
+		class="flex h-full w-full items-center justify-center overflow-hidden bg-gray-300"
+	>
+		<div class:pointer-events-none={saving} style={`transform: scale(${zoom}, ${zoom});`}>
+			<div class=" bg-white" style={`transform: translate(${transform.x}px, ${transform.y}px);`}>
+				<canvas
+					{width}
+					{height}
+					bind:this={canvas}
+					onclick={handleClick}
+					onmousemove={handleMove}
+					onmouseleave={handleLeave}
+					onmousedown={(e) => {
+						dragThreshold = { x: e.clientX, y: e.clientY };
+					}}
+					onmouseup={() => {
+						pixelBuffer = null;
+						localStorage.setItem(STORAGE_KEY_TRANSFORM, JSON.stringify(transform));
+					}}
+					onwheel={handleScroll}
+					style="image-rendering: pixelated;"
+				/>
+			</div>
+		</div>
+
+		{#if showCursorPosition && cursorPosition}
+			<div
+				class="pointer-events-none absolute z-20 w-16 rounded bg-black/25 px-2 py-1 text-center text-xs text-white"
+				style="left: {rect?.left + cursorPosition.x * zoom - 70}px; top: {rect?.top +
+					cursorPosition.y * zoom -
+					26}px"
+			>
+				{cursorPosition.x}, {cursorPosition.y}
+			</div>
+		{/if}
+
+		<div class="absolute bottom-4 z-10 flex gap-2 border-2 border-gray-300 bg-white p-2">
+			{#each Object.keys(colorsPalette) as (keyof typeof colorsPalette)[] as colorOption}
+				<ColorOption
+					onclick={() => setColor(colorOption)}
+					selected={selectedColor === colorOption}
+					color={colorsPalette[colorOption]}
+				/>
+			{/each}
 		</div>
 	</div>
-
-	{#if showCursorPosition && cursorPosition}
-		<div
-			class="pointer-events-none absolute z-20 w-16 rounded bg-black/25 px-2 py-1 text-center text-xs text-white"
-			style="left: {rect?.left + cursorPosition.x * zoom - 70}px; top: {rect?.top +
-				cursorPosition.y * zoom -
-				26}px"
-		>
-			{cursorPosition.x}, {cursorPosition.y}
-		</div>
-	{/if}
-
-	<div class="absolute bottom-4 z-10 flex gap-2 border-2 border-gray-300 bg-white p-2">
-		{#each Object.keys(colorsPalette) as (keyof typeof colorsPalette)[] as colorOption}
-			<ColorOption
-				onclick={() => setColor(colorOption)}
-				selected={selectedColor === colorOption}
-				color={colorsPalette[colorOption]}
-			/>
-		{/each}
-	</div>
-</div>
+{:else}
+	<div class="flex h-full w-full items-center justify-center overflow-hidden bg-gray-300"></div>
+{/if}
 
 <Button class="absolute right-4 top-4" onclick={() => mainGridSettingsDialog?.showModal()}
 	>settings</Button
