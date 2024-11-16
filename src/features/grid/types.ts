@@ -1,11 +1,11 @@
-import type { colorsPalette } from './const';
+export type ColorsPalette = Record<string, [number, number, number, number]>;
+export type Color = keyof ColorsPalette;
 
 export interface Coordinates {
 	x: number;
 	y: number;
 }
 
-export type Color = keyof typeof colorsPalette;
 export type Pixel = { offset: number; color: Color };
 export type Pattern = (Coordinates & Pick<Pixel, 'color'>)[];
 

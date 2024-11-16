@@ -4,11 +4,15 @@ import type { User } from '../features/user/types';
 import { getPublicPatterns } from '../features/patterns/service';
 import { userStore } from '../stores/user-store';
 import { patternsStore } from '../stores/patterns-store';
+import { getColors } from '../features/grid/service';
+import { colorsStore } from '../stores/colors-store';
 
 export const load: PageLoad = async ({ fetch }: PageLoad['props']) => {
 	const userData = await getUser(fetch);
 	const publicPatterns = await getPublicPatterns(fetch);
+	const colors = await getColors(fetch);
 
 	userStore.set(userData);
 	patternsStore.update(publicPatterns);
+	colorsStore.set(colors);
 };

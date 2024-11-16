@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Color, Coordinates, Pixel } from '../../grid/types';
-	import { colorsPalette } from '../../grid/const';
+	import type { Color, Pixel } from '../../grid/types';
 	import { height, PatternRecorder, scaleFactor, width } from '../../grid/pattern-recorder';
 	import { generateWhiteUnit8ClampedArray, getHoveredPixelColor } from '../../grid/utils';
 	import ColorOption from '../../grid/components/ColorOption.svelte';
+	import { colorsStore } from '../../../stores/colors-store';
 
 	let { dialog }: { dialog?: HTMLDialogElement } = $props();
 
@@ -15,9 +15,10 @@
 	let imageData: ImageData;
 	let rect: DOMRect;
 
+	const colorsPalette = colorsStore.get()!;
+
 	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
 	let saving = $state<boolean>(false);
-	let isRecording = $state(false);
 
 	let pixelBuffer: Pixel | null = null;
 
@@ -28,7 +29,7 @@
 
 	const handleCellClick = (e: MouseEvent) => {
 		const offset = getPixelOffset(e);
-		const color = getHoveredPixelColor({ imageData, offset });
+		const color = getHoveredPixelColor({ colorsPalette, imageData, offset });
 		patternRecorder.addPixel({ offset, color });
 	};
 
@@ -61,20 +62,33 @@
 	};
 
 	// mutate imageDataObject
-	const insertPixelAt = (color: Color, offset: number) => {
-		imageData.data.set(colorsPalette[color], offset * 4);
+	const insertPixelAt = ({
+		imageData,
+		color,
+		offset
+	}: {
+		imageData: ImageData;
+		color: Color;
+		offset: number;
+	}) => {
+		const colorData = colorsPalette[color];
+		if (!colorData) {
+			console.warn(`Invalid color: ${color}`);
+			return;
+		}
+		imageData.data.set(colorData, offset * 4);
 		context.putImageData(imageData, 0, 0);
 	};
 
 	const handleMovePixel = (e: MouseEvent) => {
 		if (saving) return;
 		const offset = getPixelOffset(e);
-		const color = getHoveredPixelColor({ imageData, offset });
+		const color = getHoveredPixelColor({ colorsPalette, imageData, offset });
 		const hoveredPixelChanged = offset !== pixelBuffer?.offset;
 
 		// HANDLE ENTER
 		if (!pixelBuffer) {
-			insertPixelAt(selectedColor, offset);
+			insertPixelAt({ imageData, color: selectedColor, offset });
 			pixelBuffer = {
 				offset,
 				color
@@ -83,9 +97,9 @@
 
 		if (pixelBuffer && hoveredPixelChanged) {
 			// restore buffer pixel
-			insertPixelAt(pixelBuffer.color, pixelBuffer.offset);
+			insertPixelAt({ imageData, color: pixelBuffer.color, offset: pixelBuffer.offset });
 			// set hovered pixel
-			insertPixelAt(selectedColor, offset);
+			insertPixelAt({ imageData, color: selectedColor, offset });
 			// update buffer
 			pixelBuffer = {
 				offset,
@@ -96,7 +110,7 @@
 
 	const handleLeave = () => {
 		if (pixelBuffer) {
-			insertPixelAt(pixelBuffer.color, pixelBuffer.offset);
+			insertPixelAt({ imageData, color: pixelBuffer.color, offset: pixelBuffer.offset });
 		}
 		pixelBuffer = null;
 	};

@@ -1,23 +1,10 @@
 import { addNotification } from '../../components/notification/notification-store';
 import type { PageLoad } from '../../routes/$types';
-import type { PublicPatternData } from '../patterns/types';
 import { remoteGridStateAdapter } from './adapter';
-import type { Grid, RemoteGridDbState } from './types';
-import { mapPixelDataToColor } from './utils';
+import { SUCCESS_MESSAGES } from './const';
+import type { ColorsPalette, Grid, RemoteGridDbState } from './types';
 
-const SUCCESS_MESSAGES = [
-	'Tactical placement!',
-	'Are you sure about that?',
-	'Nice pixel!',
-	'Keep creating!',
-	'Artistic genius!',
-	'Good choice!',
-	'Impressive!',
-	'Pixel perfect!',
-	'Great work!'
-];
-
-export async function getGridState(fetch: PageLoad['fetch']): Promise<Grid | undefined> {
+export const getGridState = async (fetch: PageLoad['fetch']): Promise<Grid | undefined> => {
 	const response = await fetch(`${import.meta.env.VITE_API_URL}/api/get-grid`, {
 		credentials: 'include',
 		headers: {
@@ -28,7 +15,19 @@ export async function getGridState(fetch: PageLoad['fetch']): Promise<Grid | und
 	const transformedGridStateData = remoteGridStateAdapter(grid.pixels);
 
 	return { grid: grid.grid, pixels: transformedGridStateData };
-}
+};
+
+export const getColors = async (fetch: PageLoad['fetch']): Promise<ColorsPalette | null> => {
+	const response = await fetch(`${import.meta.env.VITE_API_URL}/api/get-colors-palette`, {
+		credentials: 'include',
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	});
+	const colors = await response.json();
+
+	return colors;
+};
 
 export const setPixel = async ({ offset, r, g, b, a }: RemoteGridDbState[number]) => {
 	try {

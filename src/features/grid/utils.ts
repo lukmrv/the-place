@@ -1,11 +1,13 @@
-import { colorsPalette } from './const';
+import type { ColorsPalette } from './types';
 
 export const mapPixelDataToColor = ({
+	colorsPalette,
 	r,
 	g,
 	b,
 	a
 }: {
+	colorsPalette: ColorsPalette;
 	r: number;
 	g: number;
 	b: number;
@@ -17,9 +19,11 @@ export const mapPixelDataToColor = ({
 };
 
 export const getHoveredPixelColor = ({
+	colorsPalette,
 	imageData,
 	offset
 }: {
+	colorsPalette: ColorsPalette;
 	imageData: ImageData;
 	offset: number;
 }) => {
@@ -28,7 +32,7 @@ export const getHoveredPixelColor = ({
 	const b = imageData.data?.[offset * 4 + 2];
 	const a = imageData.data?.[offset * 4 + 3];
 
-	return mapPixelDataToColor({ r, g, b, a });
+	return mapPixelDataToColor({ colorsPalette, r, g, b, a });
 };
 
 export const generateWhiteUnit8ClampedArray = (width: number, height: number) => {

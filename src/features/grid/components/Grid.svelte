@@ -4,7 +4,6 @@
 
 	import { webSocketManager } from '../../../websocket-manager';
 	import type { Color, Coordinates, Pixel } from '../types';
-	import { colorsPalette } from '../const';
 	import ColorOption from './ColorOption.svelte';
 	import { getHoveredPixelColor, mapPixelDataToColor } from '../utils';
 	import Modal from '../../../components/Modal.svelte';
@@ -12,6 +11,7 @@
 	import Settings from './Settings.svelte';
 	import type { LayoutData } from '../../../routes/$types';
 	import { patternsStore } from '../../../stores/patterns-store';
+	import { colorsStore } from '../../../stores/colors-store';
 
 	let { gridState }: { gridState: Awaited<Awaited<LayoutData>['gridState']> } = $props();
 
@@ -23,6 +23,8 @@
 	let context: CanvasRenderingContext2D;
 	let imageData: ImageData;
 	let rect: DOMRect;
+
+	const colorsPalette = colorsStore.get()!;
 
 	let ws: WebSocket;
 	const maxZoom = 30;
@@ -52,7 +54,11 @@
 		ws = webSocketManager();
 		ws.onmessage = (e) => {
 			const { offset, r, g, b, a } = JSON.parse(e.data);
-			insertPixelAt({ imageData, color: mapPixelDataToColor({ r, g, b, a }), offset });
+			insertPixelAt({
+				imageData,
+				color: mapPixelDataToColor({ colorsPalette, r, g, b, a }),
+				offset
+			});
 		};
 
 		return () => ws.close();
@@ -101,7 +107,7 @@
 		}
 
 		const offset = getPixelOffset(e);
-		const hoveredPixelColor = getHoveredPixelColor({ imageData, offset });
+		const hoveredPixelColor = getHoveredPixelColor({ colorsPalette, imageData, offset });
 
 		// "optimistic" pixel placement
 		insertPixelAt({ imageData, color: selectedColor, offset });
@@ -152,7 +158,11 @@
 			if (x < 0 || x >= width || y < 0 || y >= height) continue;
 
 			const currentOffset = y * width + x;
-			const originalColor = getHoveredPixelColor({ imageData, offset: currentOffset });
+			const originalColor = getHoveredPixelColor({
+				colorsPalette,
+				imageData,
+				offset: currentOffset
+			});
 			originalColors.push({ offset: currentOffset, color: originalColor });
 
 			const [r, g, b, a] = colorsPalette?.[patternColor as Color];
@@ -173,7 +183,11 @@
 			return;
 		} else {
 			for (const { offset, r, g, b, a } of pixelsToUpdate) {
-				insertPixelAt({ imageData, color: mapPixelDataToColor({ r, g, b, a }), offset });
+				insertPixelAt({
+					imageData,
+					color: mapPixelDataToColor({ colorsPalette, r, g, b, a }),
+					offset
+				});
 				ws.send(JSON.stringify({ offset, r, g, b, a }));
 			}
 		}
@@ -223,7 +237,7 @@
 
 		// Create a temporary ImageData to batch our changes
 		const tempImageData = context.getImageData(0, 0, width, height);
-		const color = getHoveredPixelColor({ imageData: tempImageData, offset });
+		const color = getHoveredPixelColor({ colorsPalette, imageData: tempImageData, offset });
 
 		// HANDLE ENTER
 		if (!pixelBuffer) {
@@ -309,6 +323,7 @@
 
 			const currentOffset = y * width + x;
 			const currentColor = getHoveredPixelColor({
+				colorsPalette,
 				imageData: tempImageData,
 				offset: currentOffset
 			});

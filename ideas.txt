@@ -1,3 +1,4 @@
+Ideas brainstorming:
 - number of connected clients
 - chat
 - total number of pixels placed
@@ -5,10 +6,6 @@
     - maybe something like "burst panel", "current burst" with progress bar to the next one.
     - min burst 2 sec. max burst 10 sec.
     - pixels placed during the burst don't count in the achievement score.
-
-- patterns (unlock after achieving a certain number of pixels)
-    - could achieve only after the max burst??
-    
 - pattern of the day (collaborative) - everyone who participated receives an achievment.
     - need to have achivement badges,
         like a "TEAM PLAYER" - completed a pattern of the day (not solo)
@@ -20,16 +17,21 @@
 
 Stats for:
 
-completed patterns
-- team
-- solo
-
 placed pixels
 - total
-- in bursts
+- user placed vs total placed
 
-Bursts
-- most pixels in a single burst
-- number of bursts
 
 there are only two visilble HTML elements - colors picker and header with menu (chat / settings / etc)
+
+
+MVP:
+Progression is based on challenges:
+
+first challenge set 2 pixels from a pool
+    reward: alphabet
+second challenge set 3 pixels from a pool
+    reward: defined patterns
+third challenge set 5 pixels from a pool
+    reward: pattern creation
+
