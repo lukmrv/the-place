@@ -23,7 +23,7 @@ export type Grid =
 	  }
 	| undefined;
 
-export type RemoteGridState = {
+export type RemoteGridDbState = {
 	offset: number;
 	r: number;
 	g: number;

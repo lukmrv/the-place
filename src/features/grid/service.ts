@@ -1,7 +1,8 @@
 import { addNotification } from '../../components/notification/notification-store';
 import type { PageLoad } from '../../routes/$types';
+import type { PublicPatternData } from '../patterns/types';
 import { remoteGridStateAdapter } from './adapter';
-import type { Grid } from './types';
+import type { Grid, RemoteGridDbState } from './types';
 import { mapPixelDataToColor } from './utils';
 
 const SUCCESS_MESSAGES = [
@@ -29,7 +30,7 @@ export async function getGridState(fetch: PageLoad['fetch']): Promise<Grid | und
 	return { grid: grid.grid, pixels: transformedGridStateData };
 }
 
-export const setPixel = async (offset: number, r: number, g: number, b: number, a: number) => {
+export const setPixel = async ({ offset, r, g, b, a }: RemoteGridDbState[number]) => {
 	try {
 		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/set-tile`, {
 			method: 'POST',
@@ -64,5 +65,44 @@ export const setPixel = async (offset: number, r: number, g: number, b: number, 
 	} catch (error) {
 		console.log('Failed to set pixel', error);
 		return { error: 'Failed to set pixel' };
+	}
+};
+
+export const setPattern = async (pattern: { pattern: RemoteGridDbState }) => {
+	try {
+		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/set-pattern`, {
+			method: 'POST',
+			body: JSON.stringify(pattern),
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		const data = await response.json();
+
+		if (!response.ok) {
+			addNotification({
+				message: data.cooldown_in_ms
+					? `${data.message}: ${data.cooldown_in_ms / 1000}s`
+					: data.message,
+				type: 'info',
+				duration: data.cooldown_in_ms
+			});
+
+			return null;
+		} else {
+			const randomMessage = SUCCESS_MESSAGES[Math.floor(Math.random() * SUCCESS_MESSAGES.length)];
+			addNotification({
+				message: randomMessage,
+				type: 'success',
+				duration: 2000
+			});
+		}
+
+		return { data };
+	} catch (error) {
+		console.log('Failed to set pattern', error);
+		return { error: 'Failed to set pattern' };
 	}
 };

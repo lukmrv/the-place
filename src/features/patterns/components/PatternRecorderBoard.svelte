@@ -3,7 +3,7 @@
 	import type { Color, Coordinates, Pixel } from '../../grid/types';
 	import { colorsPalette } from '../../grid/const';
 	import { height, PatternRecorder, scaleFactor, width } from '../../grid/pattern-recorder';
-	import { getHoveredPixelColor } from '../../grid/utils';
+	import { generateWhiteUnit8ClampedArray, getHoveredPixelColor } from '../../grid/utils';
 	import ColorOption from '../../grid/components/ColorOption.svelte';
 
 	let { dialog }: { dialog?: HTMLDialogElement } = $props();
@@ -23,8 +23,7 @@
 
 	onMount(() => {
 		context = canvas.getContext('2d')!;
-		const whiteArray = Array.from({ length: width * height * 4 }, () => 255);
-		imageData = new ImageData(new Uint8ClampedArray(whiteArray), width, height);
+		imageData = new ImageData(generateWhiteUnit8ClampedArray(width, height), width, height);
 	});
 
 	const handleCellClick = (e: MouseEvent) => {

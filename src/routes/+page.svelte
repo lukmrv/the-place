@@ -5,6 +5,7 @@
 	import { signIn, signOut } from '../features/auth/service';
 	import PatternRecorderBoard from '../features/patterns/components/PatternRecorderBoard.svelte';
 	import { userStore } from '../stores/user-store';
+	import { generateWhiteUnit8ClampedArray } from '../features/grid/utils';
 
 	// local state
 	let patternRecorderDialog = $state<HTMLDialogElement | undefined>();
@@ -43,7 +44,7 @@
 		<Grid
 			gridState={{
 				grid: { id: 1, width: 120, height: 120, cooldown_in_ms: 1000 },
-				pixels: new Uint8ClampedArray(120 * 120 * 4)
+				pixels: generateWhiteUnit8ClampedArray(120, 120)
 			}}
 		/>
 	{:then gridState}

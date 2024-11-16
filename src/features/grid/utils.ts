@@ -1,5 +1,4 @@
 import { colorsPalette } from './const';
-import type { Color } from './types';
 
 export const mapPixelDataToColor = ({
 	r,
@@ -30,4 +29,9 @@ export const getHoveredPixelColor = ({
 	const a = imageData.data?.[offset * 4 + 3];
 
 	return mapPixelDataToColor({ r, g, b, a });
+};
+
+export const generateWhiteUnit8ClampedArray = (width: number, height: number) => {
+	const whiteArray = Array.from({ length: width * height * 4 }, (_, i) => (i % 4 === 3 ? 1 : 255));
+	return new Uint8ClampedArray(whiteArray);
 };

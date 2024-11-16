@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { setPixel } from '../service';
+	import { setPattern, setPixel } from '../service';
 
 	import { webSocketManager } from '../../../websocket-manager';
 	import type { Color, Coordinates, Pixel } from '../types';
@@ -52,7 +52,7 @@
 		ws = webSocketManager();
 		ws.onmessage = (e) => {
 			const { offset, r, g, b, a } = JSON.parse(e.data);
-			insertPixelAt(mapPixelDataToColor({ r, g, b, a }), offset);
+			insertPixelAt({ imageData, color: mapPixelDataToColor({ r, g, b, a }), offset });
 		};
 
 		return () => ws.close();
@@ -73,8 +73,21 @@
 	};
 
 	// mutate imageDataObject
-	const insertPixelAt = (color: Color, offset: number) => {
-		imageData.data.set(colorsPalette[color], offset * 4);
+	const insertPixelAt = ({
+		imageData,
+		color,
+		offset
+	}: {
+		imageData: ImageData;
+		color: Color;
+		offset: number;
+	}) => {
+		const colorData = colorsPalette[color];
+		if (!colorData) {
+			console.warn(`Invalid color: ${color}`);
+			return;
+		}
+		imageData.data.set(colorData, offset * 4);
 		context.putImageData(imageData, 0, 0);
 	};
 	const dragThresholdReached = (e: MouseEvent) =>
@@ -91,14 +104,14 @@
 		const hoveredPixelColor = getHoveredPixelColor({ imageData, offset });
 
 		// "optimistic" pixel placement
-		insertPixelAt(selectedColor, offset);
+		insertPixelAt({ imageData, color: selectedColor, offset });
 
 		const [r, g, b, a] = colorsPalette[selectedColor];
-		const response = await setPixel(offset, r, g, b, a);
+		const response = await setPixel({ offset, r, g, b, a });
 
 		if (!response) {
 			// reset pixel placement
-			insertPixelAt(hoveredPixelColor, offset);
+			insertPixelAt({ imageData, color: hoveredPixelColor, offset });
 		} else {
 			ws.send(JSON.stringify({ offset, r, g, b, a }));
 			pixelBuffer = null;
@@ -120,7 +133,7 @@
 		if (patternBuffer.length > 0) {
 			for (let i = 0; i < patternBuffer.length; i++) {
 				const { offset, color } = patternBuffer[i];
-				insertPixelAt(color, offset);
+				insertPixelAt({ imageData, color, offset });
 			}
 			patternBuffer = [];
 		}
@@ -150,24 +163,25 @@
 		}
 
 		// Try to save pixels one by one and return early if any fails
-		for (const { offset, r, g, b, a } of pixelsToUpdate) {
-			const success = await setPixel(offset, r, g, b, a);
-			if (!success) {
-				// Revert all changes if any pixel fails
-				originalColors.forEach(({ offset, color }) => {
-					insertPixelAt(color, offset);
-				});
-				return;
-			} else {
-				insertPixelAt(mapPixelDataToColor({ r, g, b, a }), offset);
+
+		const success = await setPattern({ pattern: pixelsToUpdate });
+		if (!success) {
+			// Revert all changes if any pixel fails
+			originalColors.forEach(({ offset, color }) => {
+				insertPixelAt({ imageData, color, offset });
+			});
+			return;
+		} else {
+			for (const { offset, r, g, b, a } of pixelsToUpdate) {
+				insertPixelAt({ imageData, color: mapPixelDataToColor({ r, g, b, a }), offset });
 				ws.send(JSON.stringify({ offset, r, g, b, a }));
 			}
 		}
 
 		// If we got here, all pixels were saved successfully
-		// pixelsToUpdate.forEach((update) => {
-		// 	ws.send(JSON.stringify(update));
-		// });
+		pixelsToUpdate.forEach((update) => {
+			ws.send(JSON.stringify(update));
+		});
 	};
 
 	const handleClick = async (e: MouseEvent) => {
@@ -188,7 +202,7 @@
 		if (isButtonPressed && dragThresholdReached(e)) {
 			if (!isDragging && pixelBuffer) {
 				// Reset hovered pixel when starting to drag
-				insertPixelAt(pixelBuffer.color, pixelBuffer.offset);
+				insertPixelAt({ imageData, color: pixelBuffer.color, offset: pixelBuffer.offset });
 				pixelBuffer = null;
 			}
 
@@ -213,16 +227,20 @@
 
 		// HANDLE ENTER
 		if (!pixelBuffer) {
-			tempImageData.data.set(colorsPalette[selectedColor], offset * 4);
+			insertPixelAt({ imageData: tempImageData, color: selectedColor, offset });
 			pixelBuffer = {
 				offset,
 				color
 			};
 		} else if (hoveredPixelChanged) {
 			// restore buffer pixel
-			tempImageData.data.set(colorsPalette[pixelBuffer.color], pixelBuffer.offset * 4);
+			insertPixelAt({
+				imageData: tempImageData,
+				color: pixelBuffer.color,
+				offset: pixelBuffer.offset
+			});
 			// set hovered pixel
-			tempImageData.data.set(colorsPalette[selectedColor], offset * 4);
+			insertPixelAt({ imageData: tempImageData, color: selectedColor, offset });
 			// update buffer
 			pixelBuffer = {
 				offset,
@@ -249,7 +267,7 @@
 				if (patternBuffer.length > 0) {
 					const tempImageData = context.getImageData(0, 0, width, height);
 					for (const { offset, color } of patternBuffer) {
-						tempImageData.data.set(colorsPalette[color], offset * 4);
+						insertPixelAt({ imageData: tempImageData, color, offset });
 					}
 					context.putImageData(tempImageData, 0, 0);
 					patternBuffer = [];
@@ -275,7 +293,7 @@
 		// Restore previous pattern pixels
 		if (patternBuffer.length > 0) {
 			for (const { offset, color } of patternBuffer) {
-				tempImageData.data.set(colorsPalette[color], offset * 4);
+				insertPixelAt({ imageData: tempImageData, color, offset });
 			}
 		}
 
@@ -295,7 +313,11 @@
 				offset: currentOffset
 			});
 			patternBuffer.push({ offset: currentOffset, color: currentColor });
-			tempImageData.data.set(colorsPalette[patternColor as Color], currentOffset * 4);
+			insertPixelAt({
+				imageData: tempImageData,
+				color: patternColor as Color,
+				offset: currentOffset
+			});
 		}
 
 		// Update canvas with all changes at once
@@ -323,14 +345,15 @@
 	// clear buffer
 	const handleLeave = () => {
 		cursorPosition = null;
-		if (pixelBuffer) {
-			insertPixelAt(pixelBuffer.color, pixelBuffer.offset);
+		if (pixelBuffer?.color && pixelBuffer.offset !== undefined) {
+			insertPixelAt({ imageData, color: pixelBuffer.color, offset: pixelBuffer.offset });
 		}
 		// Restore pattern pixels
 		if (patternBuffer.length > 0) {
-			for (let i = 0; i < patternBuffer.length; i++) {
-				const { offset, color } = patternBuffer[i];
-				insertPixelAt(color, offset);
+			for (const { offset, color } of patternBuffer) {
+				if (color && offset !== undefined) {
+					insertPixelAt({ imageData, color, offset });
+				}
 			}
 			patternBuffer = [];
 		}
