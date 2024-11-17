@@ -147,10 +147,7 @@
 
 		for (let i = 0; i < dynamicImageData.data.length; i += 4) {
 			if (dynamicImageData.data[i + 3] > 0) {
-				compositeImageData.data[i] = dynamicImageData.data[i];
-				compositeImageData.data[i + 1] = dynamicImageData.data[i + 1];
-				compositeImageData.data[i + 2] = dynamicImageData.data[i + 2];
-				compositeImageData.data[i + 3] = dynamicImageData.data[i + 3];
+				compositeImageData.data.set(dynamicImageData.data.slice(i, i + 4), i);
 			}
 		}
 
