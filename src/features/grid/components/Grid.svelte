@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { setPattern, setPixel } from '../service';
 
 	import { webSocketManager } from '../../../websocket-manager';
@@ -34,7 +34,7 @@
 
 	let ws: WebSocket;
 	const maxZoom = 30;
-	const minZoom = 3;
+	const minZoom = 1.4;
 	let isDragging = false;
 	let pixelBuffer: Pixel | null = null;
 	let patternBuffer: Pixel[] = [];
@@ -65,6 +65,10 @@
 
 	const patterns = patternsStore.get();
 
+	let animationFrameId: number | null = null;
+	let pendingMove: MouseEvent | null = null;
+	let accumulatedMovement = { x: 0, y: 0 };
+
 	onMount(() => {
 		imageData = new ImageData(pixels, width, height);
 		context = canvas.getContext('2d')!;
@@ -82,6 +86,11 @@
 		};
 
 		return () => ws.close();
+	});
+	onDestroy(() => {
+		if (animationFrameId !== null) {
+			cancelAnimationFrame(animationFrameId);
+		}
 	});
 
 	const getPixelOffset = (event: MouseEvent) => {
@@ -228,7 +237,13 @@
 		saving = false;
 	};
 
-	const handleMovePixel = (e: MouseEvent) => {
+	const renderPixelFrame = () => {
+		animationFrameId = null;
+		if (!pendingMove) return;
+
+		const e = pendingMove;
+		pendingMove = null;
+
 		if (saving) return;
 		const isButtonPressed = e.buttons === 1;
 
@@ -243,9 +258,14 @@
 			isDragging = true;
 			dragThreshold = null;
 
-			const zoomFactor = 1 / zoom;
-			transform.x += e.movementX * zoomFactor;
-			transform.y += e.movementY * zoomFactor;
+			// Use accumulated movement instead of single event movement
+			if (accumulatedMovement.x !== 0 || accumulatedMovement.y !== 0) {
+				const zoomFactor = 1 / zoom;
+				transform.x += accumulatedMovement.x * zoomFactor;
+				transform.y += accumulatedMovement.y * zoomFactor;
+				// Reset accumulated movement
+				accumulatedMovement = { x: 0, y: 0 };
+			}
 			return;
 		}
 
@@ -259,13 +279,9 @@
 		const tempImageData = context.getImageData(0, 0, width, height);
 		const color = getHoveredPixelColor({ colorsPalette, imageData: tempImageData, offset });
 
-		// HANDLE ENTER
 		if (!pixelBuffer) {
 			insertPixelAt({ imageData: tempImageData, color: selectedColor, offset });
-			pixelBuffer = {
-				offset,
-				color
-			};
+			pixelBuffer = { offset, color };
 		} else if (hoveredPixelChanged) {
 			// restore buffer pixel
 			insertPixelAt({
@@ -276,10 +292,7 @@
 			// set hovered pixel
 			insertPixelAt({ imageData: tempImageData, color: selectedColor, offset });
 			// update buffer
-			pixelBuffer = {
-				offset,
-				color
-			};
+			pixelBuffer = { offset, color };
 		}
 
 		// Update canvas with all changes at once
@@ -290,32 +303,43 @@
 		}
 	};
 
-	const handleMovePattern = (e: MouseEvent) => {
+	const renderPatternFrame = () => {
+		animationFrameId = null;
+		if (!pendingMove) return;
+
+		const e = pendingMove;
+		pendingMove = null;
+
 		if (saving) return;
 		const isButtonPressed = e.buttons === 1;
 
 		// Handle dragging early and skip pattern rendering
 		if (isButtonPressed && dragThresholdReached(e)) {
-			if (!isDragging) {
-				// Clear pattern preview when starting to drag
-				if (patternBuffer.length > 0) {
-					const tempImageData = context.getImageData(0, 0, width, height);
-					for (const { offset, color } of patternBuffer) {
-						insertPixelAt({ imageData: tempImageData, color, offset });
-					}
-					context.putImageData(tempImageData, 0, 0);
-					patternBuffer = [];
+			if (!isDragging && patternBuffer.length > 0) {
+				const tempImageData = context.getImageData(0, 0, width, height);
+				for (const { offset, color } of patternBuffer) {
+					insertPixelAt({ imageData: tempImageData, color, offset });
 				}
+				context.putImageData(tempImageData, 0, 0);
+				patternBuffer = [];
 			}
 
 			isDragging = true;
 			dragThreshold = null;
 
-			const zoomFactor = 1 / zoom;
-			transform.x += e.movementX * zoomFactor;
-			transform.y += e.movementY * zoomFactor;
+			// Use accumulated movement instead of single event movement
+			if (accumulatedMovement.x !== 0 || accumulatedMovement.y !== 0) {
+				const zoomFactor = 1 / zoom;
+				transform.x += accumulatedMovement.x * zoomFactor;
+				transform.y += accumulatedMovement.y * zoomFactor;
+				// Reset accumulated movement
+				accumulatedMovement = { x: 0, y: 0 };
+			}
 			return;
 		}
+
+		// Reset accumulated movement when not dragging
+		accumulatedMovement = { x: 0, y: 0 };
 
 		const offset = getPixelOffset(e);
 		const centerX = offset % width;
@@ -370,14 +394,24 @@
 			y: Math.floor(offset / width)
 		};
 
-		if (selectedPattern === 'pixel') {
-			handleMovePixel(e);
-		} else {
-			handleMovePattern(e);
+		// Store the latest mouse event
+		pendingMove = e;
+
+		// Accumulate movement if dragging
+		if (isDragging) {
+			accumulatedMovement.x += e.movementX;
+			accumulatedMovement.y += e.movementY;
 		}
+
+		// If we already have a frame queued, don't queue another
+		if (animationFrameId !== null) return;
+
+		// Schedule the next frame with appropriate renderer
+		animationFrameId = requestAnimationFrame(
+			selectedPattern === 'pixel' ? renderPixelFrame : renderPatternFrame
+		);
 	};
 
-	// clear buffer
 	const handleLeave = () => {
 		cursorPosition = null;
 		if (pixelBuffer?.color && pixelBuffer.offset !== undefined) {
@@ -404,6 +438,13 @@
 	const setColor = (color: Color) => {
 		selectedColor = color;
 	};
+
+	// Reset accumulated movement when mouse is released
+	const handleMouseUp = () => {
+		pixelBuffer = null;
+		accumulatedMovement = { x: 0, y: 0 };
+		localStorage.setItem(STORAGE_KEY_TRANSFORM, JSON.stringify(transform));
+	};
 </script>
 
 <!-- svelte-ignore element_invalid_self_closing_tag -->
@@ -423,11 +464,9 @@
 					onmouseleave={handleLeave}
 					onmousedown={(e) => {
 						dragThreshold = { x: e.clientX, y: e.clientY };
+						accumulatedMovement = { x: 0, y: 0 };
 					}}
-					onmouseup={() => {
-						pixelBuffer = null;
-						localStorage.setItem(STORAGE_KEY_TRANSFORM, JSON.stringify(transform));
-					}}
+					onmouseup={handleMouseUp}
 					onwheel={handleScroll}
 					style="image-rendering: pixelated;"
 				/>

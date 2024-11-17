@@ -13,6 +13,8 @@
 	let { data } = $props();
 	// store state initialized in loader
 	const user = userStore.get();
+
+	const DEFAULT_GRID_SIZE = 300;
 </script>
 
 <svelte:head>
@@ -43,8 +45,8 @@
 	{#await data.gridState}
 		<Grid
 			gridState={{
-				grid: { id: 1, width: 120, height: 120, cooldown_in_ms: 1000 },
-				pixels: generateWhiteUnit8ClampedArray(120, 120)
+				grid: { id: 1, width: DEFAULT_GRID_SIZE, height: DEFAULT_GRID_SIZE, cooldown_in_ms: 1000 },
+				pixels: generateWhiteUnit8ClampedArray(DEFAULT_GRID_SIZE, DEFAULT_GRID_SIZE)
 			}}
 		/>
 	{:then gridState}
