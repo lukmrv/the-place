@@ -44,7 +44,10 @@
 	let zoom = $state(
 		(() => {
 			const DEFAULT_ZOOM = 7;
-			const savedZoom = browser ? Number(localStorage.getItem(STORAGE_KEY_ZOOM)) : DEFAULT_ZOOM;
+			const savedZoom = browser
+				? Number(localStorage.getItem(STORAGE_KEY_ZOOM)) || DEFAULT_ZOOM
+				: DEFAULT_ZOOM;
+			console.log('savedZoom', savedZoom);
 			return savedZoom;
 		})()
 	);
@@ -52,9 +55,13 @@
 	let transform = $state(
 		(() => {
 			const DEFAULT_TRANSFORM = { x: 0, y: 0 };
-			const savedTransform = browser
-				? JSON.parse(localStorage.getItem(STORAGE_KEY_TRANSFORM) ?? '{}')
+			const localStorageTransform = browser
+				? localStorage.getItem(STORAGE_KEY_TRANSFORM)
+					? JSON.parse(localStorage.getItem(STORAGE_KEY_TRANSFORM)!)
+					: DEFAULT_TRANSFORM
 				: DEFAULT_TRANSFORM;
+			const savedTransform = browser ? localStorageTransform : DEFAULT_TRANSFORM;
+			console.log('savedTransform', savedTransform);
 			return savedTransform;
 		})()
 	);
@@ -388,6 +395,18 @@
 	};
 
 	const handleMove = (e: MouseEvent) => {
+		// Check if cursor is within canvas bounds
+		rect = canvas.getBoundingClientRect();
+		if (
+			e.clientX < rect.left ||
+			e.clientX > rect.right ||
+			e.clientY < rect.top ||
+			e.clientY > rect.bottom
+		) {
+			handleLeave();
+			return;
+		}
+
 		const offset = getPixelOffset(e);
 		cursorPosition = {
 			x: offset % width,
@@ -414,10 +433,23 @@
 
 	const handleLeave = () => {
 		cursorPosition = null;
+
+		// Cancel any pending frame render
+		if (animationFrameId !== null) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
+		}
+
+		// Clear any pending move
+		pendingMove = null;
+
+		// Reset pixel buffer
 		if (pixelBuffer?.color && pixelBuffer.offset !== undefined) {
 			insertPixelAt({ imageData, color: pixelBuffer.color, offset: pixelBuffer.offset });
+			pixelBuffer = null;
 		}
-		// Restore pattern pixels
+
+		// Reset pattern buffer
 		if (patternBuffer.length > 0) {
 			for (const { offset, color } of patternBuffer) {
 				if (color && offset !== undefined) {
@@ -426,7 +458,6 @@
 			}
 			patternBuffer = [];
 		}
-		pixelBuffer = null;
 	};
 	// set scale factor
 	const handleScroll = async (e: WheelEvent) => {
