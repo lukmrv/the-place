@@ -23,12 +23,11 @@
 	const height = gridState?.grid.height ?? 0;
 	const pixels = gridState?.pixels ?? new Uint8ClampedArray(0);
 
-	// svelte-ignore non_reactive_update
+	let rect: DOMRect;
 	let canvas: HTMLCanvasElement;
 	let context: CanvasRenderingContext2D;
-	let imageData: ImageData;
-	// svelte-ignore non_reactive_update
-	let rect: DOMRect;
+	let staticImageData: ImageData;
+	let dynamicImageData: ImageData;
 
 	const colorsPalette = colorsStore.get()!;
 
@@ -36,8 +35,6 @@
 	const maxZoom = 30;
 	const minZoom = 1.4;
 	let isDragging = false;
-	let pixelBuffer: Pixel | null = null;
-	let patternBuffer: Pixel[] = [];
 	let dragThreshold: Coordinates | null = null;
 
 	let mainGridSettingsDialog = $state<HTMLDialogElement | undefined>();
@@ -47,11 +44,9 @@
 			const savedZoom = browser
 				? Number(localStorage.getItem(STORAGE_KEY_ZOOM)) || DEFAULT_ZOOM
 				: DEFAULT_ZOOM;
-			console.log('savedZoom', savedZoom);
 			return savedZoom;
 		})()
 	);
-	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
 	let transform = $state(
 		(() => {
 			const DEFAULT_TRANSFORM = { x: 0, y: 0 };
@@ -61,12 +56,12 @@
 					: DEFAULT_TRANSFORM
 				: DEFAULT_TRANSFORM;
 			const savedTransform = browser ? localStorageTransform : DEFAULT_TRANSFORM;
-			console.log('savedTransform', savedTransform);
 			return savedTransform;
 		})()
 	);
-	let selectedPattern = $state<string>('pixel');
-	let saving = $state<boolean>(false);
+	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
+	let selectedPattern = $state('pixel');
+	let saving = $state(false);
 	let cursorPosition = $state<{ x: number; y: number } | null>(null);
 	let showCursorPosition = $state(false);
 
@@ -77,16 +72,16 @@
 	let accumulatedMovement = { x: 0, y: 0 };
 
 	onMount(() => {
-		imageData = new ImageData(pixels, width, height);
+		staticImageData = new ImageData(pixels, width, height);
+		dynamicImageData = new ImageData(width, height);
 		context = canvas.getContext('2d')!;
-		context.imageSmoothingEnabled = false;
-		context.putImageData(imageData, 0, 0);
+
+		context.putImageData(staticImageData, 0, 0);
 
 		ws = webSocketManager();
 		ws.onmessage = (e) => {
 			const { offset, r, g, b, a } = JSON.parse(e.data);
-			insertPixelAt({
-				imageData,
+			setStaticPixel({
 				color: mapPixelDataToColor({ colorsPalette, r, g, b, a }),
 				offset
 			});
@@ -109,139 +104,55 @@
 		const correctedX = Math.max(Math.floor(pixelX), 0);
 		const correctedY = Math.max(Math.floor(pixelY), 0);
 
-		const offset = correctedY * imageData.width + correctedX;
+		const offset = correctedY * staticImageData.width + correctedX;
 
 		return offset;
 	};
 
-	// mutate imageDataObject
-	const insertPixelAt = ({
-		imageData,
-		color,
-		offset
-	}: {
-		imageData: ImageData;
-		color: Color;
-		offset: number;
-	}) => {
+	const setStaticPixel = ({ color, offset }: { color: Color; offset: number }) => {
 		const colorData = colorsPalette[color];
 		if (!colorData) {
 			console.warn(`Invalid color: ${color}`);
 			return;
 		}
-		imageData.data.set(colorData, offset * 4);
-		context.putImageData(imageData, 0, 0);
+		staticImageData.data.set(colorData, offset * 4);
+		renderLayers();
 	};
-	const dragThresholdReached = (e: MouseEvent) =>
-		dragThreshold === null ||
-		Math.abs(e.clientX - dragThreshold.x) > 5 ||
-		Math.abs(e.clientY - dragThreshold.y) > 5;
 
-	const savePixel = async (e: MouseEvent) => {
-		if (isDragging) {
+	const setDynamicPixel = ({ color, offset }: { color: Color; offset: number }) => {
+		const colorData = colorsPalette[color];
+		if (!colorData) {
+			console.warn(`Invalid color: ${color}`);
 			return;
 		}
+		dynamicImageData.data.set(colorData, offset * 4);
+		renderLayers();
+	};
 
-		const offset = getPixelOffset(e);
-		const hoveredPixelColor = getHoveredPixelColor({ colorsPalette, imageData, offset });
-
-		// "optimistic" pixel placement
-		insertPixelAt({ imageData, color: selectedColor, offset });
-
-		const [r, g, b, a] = colorsPalette[selectedColor];
-		const response = await setPixel({ offset, r, g, b, a });
-
-		if (!response) {
-			// reset pixel placement
-			insertPixelAt({ imageData, color: hoveredPixelColor, offset });
-		} else {
-			ws.send(JSON.stringify({ offset, r, g, b, a }));
-			pixelBuffer = null;
+	const clearDynamicLayer = () => {
+		dynamicImageData = new ImageData(width, height);
+		for (let i = 3; i < dynamicImageData.data.length; i += 4) {
+			dynamicImageData.data[i] = 0;
 		}
 	};
 
-	const savePattern = async (e: MouseEvent) => {
-		// Don't save pattern if we were just dragging
-		if (isDragging) {
-			isDragging = false;
-			return;
-		}
+	const renderLayers = () => {
+		const compositeImageData = new ImageData(
+			new Uint8ClampedArray(staticImageData.data),
+			width,
+			height
+		);
 
-		const offset = getPixelOffset(e);
-		const centerX = offset % width;
-		const centerY = Math.floor(offset / width);
-
-		// Clear any existing pattern buffer first
-		if (patternBuffer.length > 0) {
-			for (let i = 0; i < patternBuffer.length; i++) {
-				const { offset, color } = patternBuffer[i];
-				insertPixelAt({ imageData, color, offset });
-			}
-			patternBuffer = [];
-		}
-
-		const pattern = patterns[selectedPattern]!;
-		const originalColors: { offset: number; color: Color }[] = [];
-		const pixelsToUpdate: { offset: number; r: number; g: number; b: number; a: number }[] = [];
-
-		// Store original colors and prepare updates
-		for (let i = 0; i < pattern.length; i++) {
-			const { x: dx, y: dy, color: patternColor } = pattern[i];
-			const x = centerX + dx;
-			const y = centerY + dy;
-
-			// Skip if outside canvas bounds
-			if (x < 0 || x >= width || y < 0 || y >= height) continue;
-
-			const currentOffset = y * width + x;
-			const originalColor = getHoveredPixelColor({
-				colorsPalette,
-				imageData,
-				offset: currentOffset
-			});
-			originalColors.push({ offset: currentOffset, color: originalColor });
-
-			const [r, g, b, a] = colorsPalette?.[patternColor as Color];
-			pixelsToUpdate.push({ offset: currentOffset, r, g, b, a });
-
-			// Optimistically place the pixel
-			// insertPixelAt(patternColor, currentOffset);
-		}
-
-		// Try to save pixels one by one and return early if any fails
-
-		const success = await setPattern({ pattern: pixelsToUpdate });
-		if (!success) {
-			// Revert all changes if any pixel fails
-			originalColors.forEach(({ offset, color }) => {
-				insertPixelAt({ imageData, color, offset });
-			});
-			return;
-		} else {
-			for (const { offset, r, g, b, a } of pixelsToUpdate) {
-				insertPixelAt({
-					imageData,
-					color: mapPixelDataToColor({ colorsPalette, r, g, b, a }),
-					offset
-				});
-				ws.send(JSON.stringify({ offset, r, g, b, a }));
+		for (let i = 0; i < dynamicImageData.data.length; i += 4) {
+			if (dynamicImageData.data[i + 3] > 0) {
+				compositeImageData.data[i] = dynamicImageData.data[i];
+				compositeImageData.data[i + 1] = dynamicImageData.data[i + 1];
+				compositeImageData.data[i + 2] = dynamicImageData.data[i + 2];
+				compositeImageData.data[i + 3] = dynamicImageData.data[i + 3];
 			}
 		}
 
-		// If we got here, all pixels were saved successfully
-		pixelsToUpdate.forEach((update) => {
-			ws.send(JSON.stringify(update));
-		});
-	};
-
-	const handleClick = async (e: MouseEvent) => {
-		saving = true;
-		if (selectedPattern === 'pixel') {
-			await savePixel(e);
-		} else {
-			await savePattern(e);
-		}
-		saving = false;
+		context.putImageData(compositeImageData, 0, 0);
 	};
 
 	const renderPixelFrame = () => {
@@ -254,56 +165,15 @@
 		if (saving) return;
 		const isButtonPressed = e.buttons === 1;
 
-		// Handle dragging early and skip pixel rendering
 		if (isButtonPressed && dragThresholdReached(e)) {
-			if (!isDragging && pixelBuffer) {
-				// Reset hovered pixel when starting to drag
-				insertPixelAt({ imageData, color: pixelBuffer.color, offset: pixelBuffer.offset });
-				pixelBuffer = null;
-			}
-
-			isDragging = true;
-			dragThreshold = null;
-
-			// Use accumulated movement instead of single event movement
-			if (accumulatedMovement.x !== 0 || accumulatedMovement.y !== 0) {
-				const zoomFactor = 1 / zoom;
-				transform.x += accumulatedMovement.x * zoomFactor;
-				transform.y += accumulatedMovement.y * zoomFactor;
-				// Reset accumulated movement
-				accumulatedMovement = { x: 0, y: 0 };
-			}
+			handleDragging(e);
 			return;
 		}
 
 		const offset = getPixelOffset(e);
-		const hoveredPixelChanged = offset !== pixelBuffer?.offset;
-
-		// Skip if pixel hasn't changed
-		if (!hoveredPixelChanged && pixelBuffer) return;
-
-		// Create a temporary ImageData to batch our changes
-		const tempImageData = context.getImageData(0, 0, width, height);
-		const color = getHoveredPixelColor({ colorsPalette, imageData: tempImageData, offset });
-
-		if (!pixelBuffer) {
-			insertPixelAt({ imageData: tempImageData, color: selectedColor, offset });
-			pixelBuffer = { offset, color };
-		} else if (hoveredPixelChanged) {
-			// restore buffer pixel
-			insertPixelAt({
-				imageData: tempImageData,
-				color: pixelBuffer.color,
-				offset: pixelBuffer.offset
-			});
-			// set hovered pixel
-			insertPixelAt({ imageData: tempImageData, color: selectedColor, offset });
-			// update buffer
-			pixelBuffer = { offset, color };
-		}
-
-		// Update canvas with all changes at once
-		context.putImageData(tempImageData, 0, 0);
+		clearDynamicLayer();
+		setDynamicPixel({ color: selectedColor, offset });
+		renderLayers();
 
 		if (!isButtonPressed) {
 			isDragging = false;
@@ -320,51 +190,17 @@
 		if (saving) return;
 		const isButtonPressed = e.buttons === 1;
 
-		// Handle dragging early and skip pattern rendering
 		if (isButtonPressed && dragThresholdReached(e)) {
-			if (!isDragging && patternBuffer.length > 0) {
-				const tempImageData = context.getImageData(0, 0, width, height);
-				for (const { offset, color } of patternBuffer) {
-					insertPixelAt({ imageData: tempImageData, color, offset });
-				}
-				context.putImageData(tempImageData, 0, 0);
-				patternBuffer = [];
-			}
-
-			isDragging = true;
-			dragThreshold = null;
-
-			// Use accumulated movement instead of single event movement
-			if (accumulatedMovement.x !== 0 || accumulatedMovement.y !== 0) {
-				const zoomFactor = 1 / zoom;
-				transform.x += accumulatedMovement.x * zoomFactor;
-				transform.y += accumulatedMovement.y * zoomFactor;
-				// Reset accumulated movement
-				accumulatedMovement = { x: 0, y: 0 };
-			}
+			handleDragging(e);
 			return;
 		}
-
-		// Reset accumulated movement when not dragging
-		accumulatedMovement = { x: 0, y: 0 };
 
 		const offset = getPixelOffset(e);
 		const centerX = offset % width;
 		const centerY = Math.floor(offset / width);
 
-		// Create a temporary ImageData to batch our changes
-		const tempImageData = context.getImageData(0, 0, width, height);
+		clearDynamicLayer();
 
-		// Restore previous pattern pixels
-		if (patternBuffer.length > 0) {
-			for (const { offset, color } of patternBuffer) {
-				insertPixelAt({ imageData: tempImageData, color, offset });
-			}
-		}
-
-		patternBuffer = [];
-
-		// Draw new pattern preview
 		const pattern = patterns[selectedPattern]!;
 		for (const { x: dx, y: dy, color: patternColor } of pattern) {
 			const x = centerX + dx;
@@ -373,30 +209,47 @@
 			if (x < 0 || x >= width || y < 0 || y >= height) continue;
 
 			const currentOffset = y * width + x;
-			const currentColor = getHoveredPixelColor({
-				colorsPalette,
-				imageData: tempImageData,
-				offset: currentOffset
-			});
-			patternBuffer.push({ offset: currentOffset, color: currentColor });
-			insertPixelAt({
-				imageData: tempImageData,
-				color: patternColor as Color,
-				offset: currentOffset
-			});
+			setDynamicPixel({ color: patternColor as Color, offset: currentOffset });
 		}
 
-		// Update canvas with all changes at once
-		context.putImageData(tempImageData, 0, 0);
+		renderLayers();
 
 		if (!isButtonPressed) {
 			isDragging = false;
 		}
 	};
 
+	const handleDragging = (e: MouseEvent) => {
+		isDragging = true;
+		dragThreshold = null;
+
+		if (accumulatedMovement.x !== 0 || accumulatedMovement.y !== 0) {
+			const zoomFactor = 1 / zoom;
+			transform.x += accumulatedMovement.x * zoomFactor;
+			transform.y += accumulatedMovement.y * zoomFactor;
+			accumulatedMovement = { x: 0, y: 0 };
+		}
+
+		clearDynamicLayer();
+		renderLayers();
+	};
+
+	const handleLeave = () => {
+		cursorPosition = null;
+
+		if (animationFrameId !== null) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
+		}
+
+		pendingMove = null;
+		clearDynamicLayer();
+		renderLayers();
+	};
+
 	const handleMove = (e: MouseEvent) => {
-		// Check if cursor is within canvas bounds
 		rect = canvas.getBoundingClientRect();
+		// prevent pixel / pattern sticking on frame miss after grid leaving
 		if (
 			e.clientX < rect.left ||
 			e.clientX > rect.right ||
@@ -413,53 +266,100 @@
 			y: Math.floor(offset / width)
 		};
 
-		// Store the latest mouse event
 		pendingMove = e;
 
-		// Accumulate movement if dragging
 		if (isDragging) {
 			accumulatedMovement.x += e.movementX;
 			accumulatedMovement.y += e.movementY;
 		}
 
-		// If we already have a frame queued, don't queue another
 		if (animationFrameId !== null) return;
 
-		// Schedule the next frame with appropriate renderer
 		animationFrameId = requestAnimationFrame(
 			selectedPattern === 'pixel' ? renderPixelFrame : renderPatternFrame
 		);
 	};
 
-	const handleLeave = () => {
-		cursorPosition = null;
-
-		// Cancel any pending frame render
-		if (animationFrameId !== null) {
-			cancelAnimationFrame(animationFrameId);
-			animationFrameId = null;
+	const handleClick = async (e: MouseEvent) => {
+		saving = true;
+		if (selectedPattern === 'pixel') {
+			await savePixel(e);
+		} else {
+			await savePattern(e);
 		}
+		saving = false;
+	};
 
-		// Clear any pending move
-		pendingMove = null;
-
-		// Reset pixel buffer
-		if (pixelBuffer?.color && pixelBuffer.offset !== undefined) {
-			insertPixelAt({ imageData, color: pixelBuffer.color, offset: pixelBuffer.offset });
-			pixelBuffer = null;
+	const savePixel = async (e: MouseEvent) => {
+		if (isDragging) {
+			isDragging = false;
+			return;
 		}
-
-		// Reset pattern buffer
-		if (patternBuffer.length > 0) {
-			for (const { offset, color } of patternBuffer) {
-				if (color && offset !== undefined) {
-					insertPixelAt({ imageData, color, offset });
-				}
-			}
-			patternBuffer = [];
+		const offset = getPixelOffset(e);
+		const [r, g, b, a] = colorsPalette[selectedColor];
+		const response = await setPixel({ offset, r, g, b, a });
+		if (response) {
+			setStaticPixel({ color: selectedColor, offset });
+			ws.send(JSON.stringify({ offset, r, g, b, a }));
 		}
 	};
-	// set scale factor
+	const savePattern = async (e: MouseEvent) => {
+		if (isDragging) {
+			isDragging = false;
+			return;
+		}
+
+		const offset = getPixelOffset(e);
+		const centerX = offset % width;
+		const centerY = Math.floor(offset / width);
+
+		const pattern = patterns[selectedPattern]!;
+		const originalColors: { offset: number; color: Color }[] = [];
+		const pixelsToUpdate: { offset: number; r: number; g: number; b: number; a: number }[] = [];
+
+		for (let i = 0; i < pattern.length; i++) {
+			const { x: dx, y: dy, color: patternColor } = pattern[i];
+			const x = centerX + dx;
+			const y = centerY + dy;
+
+			if (x < 0 || x >= width || y < 0 || y >= height) continue;
+
+			const currentOffset = y * width + x;
+			const originalColor = getHoveredPixelColor({
+				colorsPalette,
+				imageData: staticImageData,
+				offset: currentOffset
+			});
+			originalColors.push({ offset: currentOffset, color: originalColor });
+
+			const [r, g, b, a] = colorsPalette?.[patternColor as Color];
+			pixelsToUpdate.push({ offset: currentOffset, r, g, b, a });
+		}
+
+		const success = await setPattern({ pattern: pixelsToUpdate });
+		if (!success) {
+			originalColors.forEach(({ offset, color }) => {
+				setStaticPixel({ color, offset });
+			});
+			return;
+		} else {
+			for (const { offset, r, g, b, a } of pixelsToUpdate) {
+				setStaticPixel({ color: mapPixelDataToColor({ colorsPalette, r, g, b, a }), offset });
+				ws.send(JSON.stringify({ offset, r, g, b, a }));
+			}
+		}
+
+		// TODO - send with a single batch (the same way as request is being sent)
+		pixelsToUpdate.forEach((update) => {
+			ws.send(JSON.stringify(update));
+		});
+	};
+
+	const dragThresholdReached = (e: MouseEvent) =>
+		dragThreshold === null ||
+		Math.abs(e.clientX - dragThreshold.x) > 5 ||
+		Math.abs(e.clientY - dragThreshold.y) > 5;
+
 	const handleScroll = async (e: WheelEvent) => {
 		const dir = Math.sign(e.deltaY);
 		zoom -= dir;
@@ -470,10 +370,7 @@
 		selectedColor = color;
 	};
 
-	// Reset accumulated movement when mouse is released
 	const handleMouseUp = () => {
-		pixelBuffer = null;
-		accumulatedMovement = { x: 0, y: 0 };
 		localStorage.setItem(STORAGE_KEY_TRANSFORM, JSON.stringify(transform));
 	};
 </script>
