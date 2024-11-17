@@ -23,7 +23,9 @@
 	const height = gridState?.grid.height ?? 0;
 	const pixels = gridState?.pixels ?? new Uint8ClampedArray(0);
 
+	// svelte-ignore non_reactive_update
 	let rect: DOMRect;
+	// svelte-ignore non_reactive_update
 	let canvas: HTMLCanvasElement;
 	let context: CanvasRenderingContext2D;
 	let staticImageData: ImageData;
@@ -301,6 +303,8 @@
 		if (response) {
 			setStaticPixel({ color: selectedColor, offset });
 			ws.send(JSON.stringify({ offset, r, g, b, a }));
+		} else {
+			setDynamicPixel({ color: selectedColor, offset });
 		}
 	};
 	const savePattern = async (e: MouseEvent) => {
@@ -336,23 +340,18 @@
 			pixelsToUpdate.push({ offset: currentOffset, r, g, b, a });
 		}
 
-		const success = await setPattern({ pattern: pixelsToUpdate });
-		if (!success) {
-			originalColors.forEach(({ offset, color }) => {
-				setStaticPixel({ color, offset });
-			});
-			return;
-		} else {
+		const response = await setPattern({ pattern: pixelsToUpdate });
+
+		if (response) {
 			for (const { offset, r, g, b, a } of pixelsToUpdate) {
 				setStaticPixel({ color: mapPixelDataToColor({ colorsPalette, r, g, b, a }), offset });
 				ws.send(JSON.stringify({ offset, r, g, b, a }));
 			}
+		} else {
+			for (const { offset, r, g, b, a } of pixelsToUpdate) {
+				setDynamicPixel({ color: mapPixelDataToColor({ colorsPalette, r, g, b, a }), offset });
+			}
 		}
-
-		// TODO - send with a single batch (the same way as request is being sent)
-		pixelsToUpdate.forEach((update) => {
-			ws.send(JSON.stringify(update));
-		});
 	};
 
 	const dragThresholdReached = (e: MouseEvent) =>
