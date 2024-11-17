@@ -12,7 +12,9 @@
 
 	let canvas: HTMLCanvasElement;
 	let context: CanvasRenderingContext2D;
-	let imageData: ImageData;
+	let staticImageData: ImageData;
+	let dynamicImageData: ImageData;
+
 	let rect: DOMRect;
 
 	const colorsPalette = colorsStore.get()!;
@@ -20,30 +22,53 @@
 	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
 	let saving = $state<boolean>(false);
 
-	let pixelBuffer: Pixel | null = null;
-
 	onMount(() => {
 		context = canvas.getContext('2d')!;
-		imageData = new ImageData(generateWhiteUnit8ClampedArray(width, height), width, height);
+
+		staticImageData = new ImageData(generateWhiteUnit8ClampedArray(width, height), width, height);
+		dynamicImageData = new ImageData(width, height);
+
+		context.putImageData(staticImageData, 0, 0);
 	});
+
+	const setStaticPixel = (offset: number, color: Color) => {
+		const colorData = colorsPalette[color];
+		if (!colorData) {
+			console.warn(`Invalid color: ${color}`);
+			return;
+		}
+
+		staticImageData.data.set(colorData, offset * 4);
+		renderLayers();
+	};
+
+	const setDynamicPixel = (offset: number, color: Color) => {
+		const colorData = colorsPalette[color];
+		if (!colorData) {
+			console.warn(`Invalid color: ${color}`);
+			return;
+		}
+
+		dynamicImageData.data.set(colorData, offset * 4);
+		renderLayers();
+	};
 
 	const handleCellClick = (e: MouseEvent) => {
 		const offset = getPixelOffset(e);
-		const color = getHoveredPixelColor({ colorsPalette, imageData, offset });
-		patternRecorder.addPixel({ offset, color });
+		patternRecorder.addPixel({ offset, color: selectedColor });
+		setStaticPixel(offset, selectedColor);
 	};
 
 	const savePattern = () => {
 		const pattern = patternRecorder.savePattern();
-
 		console.log('Recorded Pattern:', pattern);
-
 		dialog?.close();
 	};
 
 	const clearPattern = () => {
-		imageData.data.fill(255);
-		context.putImageData(imageData, 0, 0);
+		staticImageData.data.fill(255);
+		dynamicImageData.data.fill(0);
+		context.putImageData(staticImageData, 0, 0);
 		patternRecorder.clearPattern();
 	};
 
@@ -56,63 +81,39 @@
 		const correctedX = Math.max(Math.floor(pixelX), 0);
 		const correctedY = Math.max(Math.floor(pixelY), 0);
 
-		const offset = correctedY * imageData.width + correctedX;
-
-		return offset;
+		return correctedY * width + correctedX;
 	};
 
-	// mutate imageDataObject
-	const insertPixelAt = ({
-		imageData,
-		color,
-		offset
-	}: {
-		imageData: ImageData;
-		color: Color;
-		offset: number;
-	}) => {
-		const colorData = colorsPalette[color];
-		if (!colorData) {
-			console.warn(`Invalid color: ${color}`);
-			return;
+	const renderLayers = () => {
+		const compositeImageData = new ImageData(
+			new Uint8ClampedArray(staticImageData.data),
+			width,
+			height
+		);
+
+		for (let i = 0; i < dynamicImageData.data.length; i += 4) {
+			if (dynamicImageData.data[i + 3] > 0) {
+				compositeImageData.data.set(dynamicImageData.data.slice(i, i + 4), i);
+			}
 		}
-		imageData.data.set(colorData, offset * 4);
-		context.putImageData(imageData, 0, 0);
+
+		context.putImageData(compositeImageData, 0, 0);
 	};
 
 	const handleMovePixel = (e: MouseEvent) => {
 		if (saving) return;
 		const offset = getPixelOffset(e);
-		const color = getHoveredPixelColor({ colorsPalette, imageData, offset });
-		const hoveredPixelChanged = offset !== pixelBuffer?.offset;
 
-		// HANDLE ENTER
-		if (!pixelBuffer) {
-			insertPixelAt({ imageData, color: selectedColor, offset });
-			pixelBuffer = {
-				offset,
-				color
-			};
-		}
+		// Clear previous hover effect
+		dynamicImageData.data.fill(0);
 
-		if (pixelBuffer && hoveredPixelChanged) {
-			// restore buffer pixel
-			insertPixelAt({ imageData, color: pixelBuffer.color, offset: pixelBuffer.offset });
-			// set hovered pixel
-			insertPixelAt({ imageData, color: selectedColor, offset });
-			// update buffer
-			pixelBuffer = {
-				offset,
-				color
-			};
-		}
+		// Add new hover effect
+		setDynamicPixel(offset, selectedColor);
 	};
 
 	const handleLeave = () => {
-		if (pixelBuffer) {
-			insertPixelAt({ imageData, color: pixelBuffer.color, offset: pixelBuffer.offset });
-		}
-		pixelBuffer = null;
+		dynamicImageData.data.fill(0);
+		renderLayers();
 	};
 
 	const setColor = (color: Color) => {
@@ -120,7 +121,6 @@
 	};
 </script>
 
-<!-- svelte-ignore element_invalid_self_closing_tag -->
 <div class="flex flex-1 flex-col items-center gap-4 bg-gray-100">
 	<div class="mt-4 text-lg font-bold text-gray-400">
 		{width} x {height}
@@ -137,12 +137,9 @@
 			onclick={handleCellClick}
 			onmousemove={handleMovePixel}
 			onmouseleave={handleLeave}
-			onmouseup={() => {
-				pixelBuffer = null;
-			}}
 			style={`image-rendering: pixelated; transform: scale(${scaleFactor}, ${scaleFactor});`}
-			class=" bg-white"
-		/>
+			class="bg-white"
+		></canvas>
 	</div>
 
 	<div class="flex w-80 flex-wrap justify-center gap-2">

@@ -250,18 +250,6 @@
 	};
 
 	const handleMove = (e: MouseEvent) => {
-		rect = canvas.getBoundingClientRect();
-		// prevent pixel / pattern sticking on frame miss after grid leaving
-		if (
-			e.clientX < rect.left ||
-			e.clientX > rect.right ||
-			e.clientY < rect.top ||
-			e.clientY > rect.bottom
-		) {
-			handleLeave();
-			return;
-		}
-
 		const offset = getPixelOffset(e);
 		cursorPosition = {
 			x: offset % width,
