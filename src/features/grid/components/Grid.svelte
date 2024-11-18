@@ -17,7 +17,6 @@
 	import { patternsStore } from '../../../stores/patterns-store';
 	import { colorsStore } from '../../../stores/colors-store';
 	import { browser } from '$app/environment';
-	import { remoteGridStateAdapter } from '../adapter';
 
 	const STORAGE_KEY_TRANSFORM = 'grid_transform';
 	const STORAGE_KEY_ZOOM = 'grid_zoom';
@@ -119,12 +118,20 @@
 	};
 
 	const setStaticPixel = ({ color, offset }: { color: Color; offset: number }) => {
-		staticImageData.data.set(color, offset * 4);
+		staticImageData.data[offset * 4] = color[0];
+		staticImageData.data[offset * 4 + 1] = color[1];
+		staticImageData.data[offset * 4 + 2] = color[2];
+		staticImageData.data[offset * 4 + 3] = color[3];
+
 		renderLayers();
 	};
 
 	const setDynamicPixel = ({ color, offset }: { color: number[]; offset: number }) => {
-		dynamicImageData.data.set(color, offset * 4);
+		dynamicImageData.data[offset * 4] = color[0];
+		dynamicImageData.data[offset * 4 + 1] = color[1];
+		dynamicImageData.data[offset * 4 + 2] = color[2];
+		dynamicImageData.data[offset * 4 + 3] = color[3];
+
 		renderLayers();
 	};
 
@@ -136,19 +143,18 @@
 	};
 
 	const renderLayers = () => {
-		const compositeImageData = new ImageData(
-			new Uint8ClampedArray(staticImageData.data),
-			width,
-			height
-		);
+		const compositeArray = new Uint8ClampedArray(staticImageData.data);
 
 		for (let i = 0; i < dynamicImageData.data.length; i += 4) {
 			if (dynamicImageData.data[i + 3] > 0) {
-				compositeImageData.data.set(dynamicImageData.data.slice(i, i + 4), i);
+				compositeArray[i] = dynamicImageData.data[i];
+				compositeArray[i + 1] = dynamicImageData.data[i + 1];
+				compositeArray[i + 2] = dynamicImageData.data[i + 2];
+				compositeArray[i + 3] = dynamicImageData.data[i + 3];
 			}
 		}
 
-		context.putImageData(compositeImageData, 0, 0);
+		context.putImageData(new ImageData(compositeArray, width, height), 0, 0);
 	};
 
 	const renderPixelFrame = () => {
@@ -195,7 +201,7 @@
 		const centerX = offset % width;
 		const centerY = Math.floor(offset / width);
 
-		clearDynamicLayer();
+		const newDynamicData = new Uint8ClampedArray(width * height * 4);
 
 		const pattern = patterns[selectedPattern]!;
 		for (const { x: dx, y: dy, r, g, b, a } of pattern) {
@@ -204,10 +210,14 @@
 
 			if (x < 0 || x >= width || y < 0 || y >= height) continue;
 
-			const currentOffset = y * width + x;
-			setDynamicPixel({ color: [r, g, b, a], offset: currentOffset });
+			const currentOffset = (y * width + x) * 4;
+			newDynamicData[currentOffset] = r;
+			newDynamicData[currentOffset + 1] = g;
+			newDynamicData[currentOffset + 2] = b;
+			newDynamicData[currentOffset + 3] = a;
 		}
 
+		dynamicImageData = new ImageData(newDynamicData, width, height);
 		renderLayers();
 
 		if (!isButtonPressed) {

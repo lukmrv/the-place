@@ -69,7 +69,7 @@ export const setPixel = async ({ offset, r, g, b, a }: GridPixelData) => {
 	}
 };
 
-export const setPattern = async (pattern: { pattern: GridPixelData[] }) => {
+export const setPattern = async (pattern: GridPixelData[]) => {
 	try {
 		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/set-pattern`, {
 			method: 'POST',
