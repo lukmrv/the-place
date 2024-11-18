@@ -1,9 +1,11 @@
 import type { PageLoad } from '../../routes/$types';
-import type { PublicPatternData } from './types';
+import type { ResponseGridPatternData } from './types';
 
-export const getPublicPatterns = async (fetch: PageLoad['fetch']): Promise<PublicPatternData> => {
+export const getGridPatterns = async (
+	fetch: PageLoad['fetch']
+): Promise<ResponseGridPatternData> => {
 	try {
-		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/get-public-patterns`, {
+		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/get-grid-patterns`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json'

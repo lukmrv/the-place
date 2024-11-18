@@ -16,7 +16,7 @@
 
 <button
 	{onclick}
-	aria-label={`Color ${color}`}
+	aria-label={`Color ${color.join(', ')}`}
 	class:border-gray-600={selected}
 	class={twMerge('border-2 border-gray-200', sizeClass[size])}
 	style="background-color: rgba({color[0]}, {color[1]}, {color[2]}, {color[3]})"

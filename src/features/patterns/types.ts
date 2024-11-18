@@ -1,14 +1,9 @@
-export interface DbPatternTile {
-	pattern_id?: string;
+export type ResponseGridPatternCoordinate = {
 	x: number;
 	y: number;
-	color: string;
-}
-
-export type DbPublicPattern = {
-	id?: string;
-	name: string;
-	tiles: DbPatternTile[];
+	r: number;
+	g: number;
+	b: number;
+	a: number;
 };
-
-export type PublicPatternData = Record<string, DbPatternTile[]>;
+export type ResponseGridPatternData = Record<string, ResponseGridPatternCoordinate[]>;

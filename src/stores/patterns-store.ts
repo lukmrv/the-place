@@ -1,10 +1,10 @@
 import { get, writable } from 'svelte/store';
-import type { PublicPatternData } from '../features/patterns/types';
+import type { ResponseGridPatternData } from '../features/patterns/types';
 
 const usePatterns = () => {
-	const patternsStore = writable<PublicPatternData>({ pixel: [] });
+	const patternsStore = writable<ResponseGridPatternData>({ pixel: [] });
 
-	const update = (patterns: PublicPatternData) =>
+	const update = (patterns: ResponseGridPatternData) =>
 		patternsStore.update((currentPatterns) => ({
 			...currentPatterns,
 			...patterns

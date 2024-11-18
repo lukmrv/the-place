@@ -3,9 +3,13 @@
 	import { setPattern, setPixel } from '../service';
 
 	import { webSocketManager } from '../../../websocket-manager';
-	import type { Color, Coordinates, Pixel } from '../types';
+	import type { Color, Coordinate } from '../types';
 	import ColorOption from './ColorOption.svelte';
-	import { getHoveredPixelColor, mapPixelDataToColor } from '../utils';
+	import {
+		generateWhiteUnit8ClampedArray,
+		getHoveredPixelColor,
+		mapPixelDataToColor
+	} from '../utils';
 	import Modal from '../../../components/Modal.svelte';
 	import Button from '../../../components/Button.svelte';
 	import Settings from './Settings.svelte';
@@ -13,6 +17,7 @@
 	import { patternsStore } from '../../../stores/patterns-store';
 	import { colorsStore } from '../../../stores/colors-store';
 	import { browser } from '$app/environment';
+	import { remoteGridStateAdapter } from '../adapter';
 
 	const STORAGE_KEY_TRANSFORM = 'grid_transform';
 	const STORAGE_KEY_ZOOM = 'grid_zoom';
@@ -21,7 +26,8 @@
 
 	const width = gridState?.grid.width ?? 0;
 	const height = gridState?.grid.height ?? 0;
-	const pixels = gridState?.pixels ?? new Uint8ClampedArray(0);
+
+	const pixels = gridState?.pixels ?? generateWhiteUnit8ClampedArray(width, height);
 
 	// svelte-ignore non_reactive_update
 	let rect: DOMRect;
@@ -37,7 +43,7 @@
 	const maxZoom = 30;
 	const minZoom = 1.4;
 	let isDragging = false;
-	let dragThreshold: Coordinates | null = null;
+	let dragThreshold: Coordinate | null = null;
 
 	let mainGridSettingsDialog = $state<HTMLDialogElement | undefined>();
 	let zoom = $state(
@@ -61,7 +67,8 @@
 			return savedTransform;
 		})()
 	);
-	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
+	let selectedColor = $state(colorsPalette['red'] as Color);
+
 	let selectedPattern = $state('pixel');
 	let saving = $state(false);
 	let cursorPosition = $state<{ x: number; y: number } | null>(null);
@@ -84,7 +91,7 @@
 		ws.onmessage = (e) => {
 			const { offset, r, g, b, a } = JSON.parse(e.data);
 			setStaticPixel({
-				color: mapPixelDataToColor({ colorsPalette, r, g, b, a }),
+				color: [r, g, b, a],
 				offset
 			});
 		};
@@ -112,22 +119,12 @@
 	};
 
 	const setStaticPixel = ({ color, offset }: { color: Color; offset: number }) => {
-		const colorData = colorsPalette[color];
-		if (!colorData) {
-			console.warn(`Invalid color: ${color}`);
-			return;
-		}
-		staticImageData.data.set(colorData, offset * 4);
+		staticImageData.data.set(color, offset * 4);
 		renderLayers();
 	};
 
-	const setDynamicPixel = ({ color, offset }: { color: Color; offset: number }) => {
-		const colorData = colorsPalette[color];
-		if (!colorData) {
-			console.warn(`Invalid color: ${color}`);
-			return;
-		}
-		dynamicImageData.data.set(colorData, offset * 4);
+	const setDynamicPixel = ({ color, offset }: { color: number[]; offset: number }) => {
+		dynamicImageData.data.set(color, offset * 4);
 		renderLayers();
 	};
 
@@ -201,14 +198,14 @@
 		clearDynamicLayer();
 
 		const pattern = patterns[selectedPattern]!;
-		for (const { x: dx, y: dy, color: patternColor } of pattern) {
+		for (const { x: dx, y: dy, r, g, b, a } of pattern) {
 			const x = centerX + dx;
 			const y = centerY + dy;
 
 			if (x < 0 || x >= width || y < 0 || y >= height) continue;
 
 			const currentOffset = y * width + x;
-			setDynamicPixel({ color: patternColor as Color, offset: currentOffset });
+			setDynamicPixel({ color: [r, g, b, a], offset: currentOffset });
 		}
 
 		renderLayers();
@@ -283,7 +280,7 @@
 			return;
 		}
 		const offset = getPixelOffset(e);
-		const [r, g, b, a] = colorsPalette[selectedColor];
+		const [r, g, b, a] = selectedColor;
 		const response = await setPixel({ offset, r, g, b, a });
 		if (response) {
 			setStaticPixel({ color: selectedColor, offset });
@@ -307,7 +304,7 @@
 		const pixelsToUpdate: { offset: number; r: number; g: number; b: number; a: number }[] = [];
 
 		for (let i = 0; i < pattern.length; i++) {
-			const { x: dx, y: dy, color: patternColor } = pattern[i];
+			const { x: dx, y: dy, r, g, b, a } = pattern[i];
 			const x = centerX + dx;
 			const y = centerY + dy;
 
@@ -315,26 +312,24 @@
 
 			const currentOffset = y * width + x;
 			const originalColor = getHoveredPixelColor({
-				colorsPalette,
 				imageData: staticImageData,
 				offset: currentOffset
 			});
 			originalColors.push({ offset: currentOffset, color: originalColor });
 
-			const [r, g, b, a] = colorsPalette?.[patternColor as Color];
 			pixelsToUpdate.push({ offset: currentOffset, r, g, b, a });
 		}
 
-		const response = await setPattern({ pattern: pixelsToUpdate });
+		const response = await setPattern(pixelsToUpdate);
 
 		if (response) {
 			for (const { offset, r, g, b, a } of pixelsToUpdate) {
-				setStaticPixel({ color: mapPixelDataToColor({ colorsPalette, r, g, b, a }), offset });
+				setStaticPixel({ color: [r, g, b, a], offset });
 				ws.send(JSON.stringify({ offset, r, g, b, a }));
 			}
 		} else {
 			for (const { offset, r, g, b, a } of pixelsToUpdate) {
-				setDynamicPixel({ color: mapPixelDataToColor({ colorsPalette, r, g, b, a }), offset });
+				setDynamicPixel({ color: [r, g, b, a], offset });
 			}
 		}
 	};
@@ -399,8 +394,8 @@
 		<div class="absolute bottom-4 z-10 flex gap-2 border-2 border-gray-300 bg-white p-2">
 			{#each Object.keys(colorsPalette) as (keyof typeof colorsPalette)[] as colorOption}
 				<ColorOption
-					onclick={() => setColor(colorOption)}
-					selected={selectedColor === colorOption}
+					onclick={() => setColor(colorsPalette[colorOption])}
+					selected={selectedColor === colorsPalette[colorOption]}
 					color={colorsPalette[colorOption]}
 				/>
 			{/each}

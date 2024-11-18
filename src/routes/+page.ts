@@ -4,10 +4,10 @@ export const ssr = true;
 
 import type { PageLoad } from './$types';
 import { getGridState } from '../features/grid/service';
-import type { Grid } from '../features/grid/types';
+import type { Grid, GridState } from '../features/grid/types';
 
 type PageData = {
-	gridState: Promise<Grid | undefined>;
+	gridState: Promise<GridState | undefined>;
 };
 
 // this is more of a page data, even thought it's available for all children

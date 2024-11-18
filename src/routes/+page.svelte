@@ -51,7 +51,7 @@
 		/>
 	{:then gridState}
 		{#if gridState}
-			<Grid gridState={{ grid: gridState.grid, pixels: gridState.pixels }} />
+			<Grid {gridState} />
 		{:else}
 			<div>Oops! Something went wrong.</div>
 		{/if}

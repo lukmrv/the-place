@@ -1,10 +1,11 @@
 import { addNotification } from '../../components/notification/notification-store';
 import type { PageLoad } from '../../routes/$types';
 import { remoteGridStateAdapter } from './adapter';
-import { SUCCESS_MESSAGES } from './const';
-import type { ColorsPalette, Grid, RemoteGridDbState } from './types';
+import { PIXEL_SUCCESS_MESSAGES, PATTERN_SUCCESS_MESSAGES } from './const';
+import type { ColorsPalette, GridPixelData } from './types';
+import type { GridState } from './types';
 
-export const getGridState = async (fetch: PageLoad['fetch']): Promise<Grid | undefined> => {
+export const getGridState = async (fetch: PageLoad['fetch']): Promise<GridState | undefined> => {
 	const response = await fetch(`${import.meta.env.VITE_API_URL}/api/get-grid`, {
 		credentials: 'include',
 		headers: {
@@ -12,9 +13,8 @@ export const getGridState = async (fetch: PageLoad['fetch']): Promise<Grid | und
 		}
 	});
 	const grid = await response.json();
-	const transformedGridStateData = remoteGridStateAdapter(grid.pixels);
 
-	return { grid: grid.grid, pixels: transformedGridStateData };
+	return { grid: grid.grid, pixels: remoteGridStateAdapter(grid.pixels) };
 };
 
 export const getColors = async (fetch: PageLoad['fetch']): Promise<ColorsPalette | null> => {
@@ -29,7 +29,7 @@ export const getColors = async (fetch: PageLoad['fetch']): Promise<ColorsPalette
 	return colors;
 };
 
-export const setPixel = async ({ offset, r, g, b, a }: RemoteGridDbState[number]) => {
+export const setPixel = async ({ offset, r, g, b, a }: GridPixelData) => {
 	try {
 		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/set-tile`, {
 			method: 'POST',
@@ -42,17 +42,19 @@ export const setPixel = async ({ offset, r, g, b, a }: RemoteGridDbState[number]
 		const data = await response.json();
 
 		if (!response.ok) {
+			console.log(data);
 			addNotification({
-				message: data.cooldown_in_ms
-					? `${data.message}: ${data.cooldown_in_ms / 1000}s`
-					: data.message,
+				message: data.error.cooldown_in_ms
+					? `${data.error.message}: ${data.error.cooldown_in_ms / 1000}s`
+					: data.error.message,
 				type: 'info',
-				duration: data.cooldown_in_ms
+				duration: data.error.cooldown_in_ms
 			});
 
 			return null;
 		} else {
-			const randomMessage = SUCCESS_MESSAGES[Math.floor(Math.random() * SUCCESS_MESSAGES.length)];
+			const randomMessage =
+				PIXEL_SUCCESS_MESSAGES[Math.floor(Math.random() * PIXEL_SUCCESS_MESSAGES.length)];
 			addNotification({
 				message: randomMessage,
 				type: 'success',
@@ -67,11 +69,11 @@ export const setPixel = async ({ offset, r, g, b, a }: RemoteGridDbState[number]
 	}
 };
 
-export const setPattern = async (pattern: { pattern: RemoteGridDbState }) => {
+export const setPattern = async (pattern: { pattern: GridPixelData[] }) => {
 	try {
 		const response = await fetch(`${import.meta.env.VITE_API_URL}/api/set-pattern`, {
 			method: 'POST',
-			body: JSON.stringify(pattern),
+			body: JSON.stringify({ pattern }),
 			credentials: 'include',
 			headers: {
 				'Content-Type': 'application/json'
@@ -82,16 +84,17 @@ export const setPattern = async (pattern: { pattern: RemoteGridDbState }) => {
 
 		if (!response.ok) {
 			addNotification({
-				message: data.cooldown_in_ms
-					? `${data.message}: ${data.cooldown_in_ms / 1000}s`
-					: data.message,
+				message: data.error.cooldown_in_ms
+					? `${data.error.message}: ${data.error.cooldown_in_ms / 1000}s`
+					: data.error.message,
 				type: 'info',
-				duration: data.cooldown_in_ms
+				duration: data.error.cooldown_in_ms
 			});
 
 			return null;
 		} else {
-			const randomMessage = SUCCESS_MESSAGES[Math.floor(Math.random() * SUCCESS_MESSAGES.length)];
+			const randomMessage =
+				PATTERN_SUCCESS_MESSAGES[Math.floor(Math.random() * PATTERN_SUCCESS_MESSAGES.length)];
 			addNotification({
 				message: randomMessage,
 				type: 'success',

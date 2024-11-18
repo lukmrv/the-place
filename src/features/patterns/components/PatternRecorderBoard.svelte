@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Color, Pixel } from '../../grid/types';
+	import type { Color } from '../../grid/types';
 	import { height, PatternRecorder, scaleFactor, width } from '../../grid/pattern-recorder';
 	import { generateWhiteUnit8ClampedArray, getHoveredPixelColor } from '../../grid/utils';
 	import ColorOption from '../../grid/components/ColorOption.svelte';
@@ -19,7 +19,7 @@
 
 	const colorsPalette = colorsStore.get()!;
 
-	let selectedColor = $state(Object.keys(colorsPalette)[0] as Color);
+	let selectedColor = $state(colorsPalette['red'] as Color);
 	let saving = $state<boolean>(false);
 
 	onMount(() => {
@@ -31,32 +31,20 @@
 		context.putImageData(staticImageData, 0, 0);
 	});
 
-	const setStaticPixel = (offset: number, color: Color) => {
-		const colorData = colorsPalette[color];
-		if (!colorData) {
-			console.warn(`Invalid color: ${color}`);
-			return;
-		}
-
-		staticImageData.data.set(colorData, offset * 4);
+	const setStaticPixel = ({ color, offset }: { color: Color; offset: number }) => {
+		staticImageData.data.set(color, offset * 4);
 		renderLayers();
 	};
 
-	const setDynamicPixel = (offset: number, color: Color) => {
-		const colorData = colorsPalette[color];
-		if (!colorData) {
-			console.warn(`Invalid color: ${color}`);
-			return;
-		}
-
-		dynamicImageData.data.set(colorData, offset * 4);
+	const setDynamicPixel = ({ color, offset }: { color: number[]; offset: number }) => {
+		dynamicImageData.data.set(color, offset * 4);
 		renderLayers();
 	};
 
 	const handleCellClick = (e: MouseEvent) => {
 		const offset = getPixelOffset(e);
 		patternRecorder.addPixel({ offset, color: selectedColor });
-		setStaticPixel(offset, selectedColor);
+		setStaticPixel({ color: selectedColor, offset });
 	};
 
 	const savePattern = () => {
@@ -108,7 +96,7 @@
 		dynamicImageData.data.fill(0);
 
 		// Add new hover effect
-		setDynamicPixel(offset, selectedColor);
+		setDynamicPixel({ color: selectedColor, offset });
 	};
 
 	const handleLeave = () => {
@@ -143,12 +131,12 @@
 	</div>
 
 	<div class="flex w-80 flex-wrap justify-center gap-2">
-		{#each Object.keys(colorsPalette) as (keyof typeof colorsPalette)[] as colorOption}
+		{#each Object.values(colorsPalette) as RGBA_ARRAY}
 			<ColorOption
 				size="sm"
-				onclick={() => setColor(colorOption)}
-				selected={selectedColor === colorOption}
-				color={colorsPalette[colorOption]}
+				onclick={() => setColor(RGBA_ARRAY)}
+				selected={selectedColor === RGBA_ARRAY}
+				color={RGBA_ARRAY}
 			/>
 		{/each}
 	</div>
