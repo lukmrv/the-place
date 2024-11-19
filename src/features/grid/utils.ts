@@ -1,22 +1,4 @@
-import type { Color, ColorsPalette } from './types';
-
-export const mapPixelDataToColor = ({
-	colorsPalette,
-	r,
-	g,
-	b,
-	a
-}: {
-	colorsPalette: ColorsPalette;
-	r: number;
-	g: number;
-	b: number;
-	a: number;
-}) => {
-	return Object.entries(colorsPalette).find(
-		([, color]) => color[0] === r && color[1] === g && color[2] === b
-	)?.[0] as keyof typeof colorsPalette;
-};
+import type { Color } from './types';
 
 export const getHoveredPixelColor = ({
 	imageData,

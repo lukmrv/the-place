@@ -5,11 +5,7 @@
 	import { webSocketManager } from '../../../websocket-manager';
 	import type { Color, Coordinate } from '../types';
 	import ColorOption from './ColorOption.svelte';
-	import {
-		generateWhiteUnit8ClampedArray,
-		getHoveredPixelColor,
-		mapPixelDataToColor
-	} from '../utils';
+	import { generateWhiteUnit8ClampedArray, getHoveredPixelColor } from '../utils';
 	import Modal from '../../../components/Modal.svelte';
 	import Button from '../../../components/Button.svelte';
 	import Settings from './Settings.svelte';
