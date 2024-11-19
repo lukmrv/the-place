@@ -4,7 +4,7 @@ export const ssr = true;
 
 import type { PageLoad } from './$types';
 import { getGridState } from '../features/grid/service';
-import type { Grid, GridState } from '../features/grid/types';
+import type { GridState } from '../features/grid/types';
 
 type PageData = {
 	gridState: Promise<GridState | undefined>;

@@ -1,6 +1,5 @@
 import { addNotification } from '../../components/notification/notification-store';
 import type { PageLoad } from '../../routes/$types';
-import { remoteGridStateAdapter } from './adapter';
 import { PIXEL_SUCCESS_MESSAGES, PATTERN_SUCCESS_MESSAGES } from './const';
 import type { ColorsPalette, GridPixelData } from './types';
 import type { GridState } from './types';
@@ -14,7 +13,7 @@ export const getGridState = async (fetch: PageLoad['fetch']): Promise<GridState 
 	});
 	const grid = await response.json();
 
-	return { grid: grid.grid, pixels: remoteGridStateAdapter(grid.pixels) };
+	return { grid: grid.grid, pixels: Uint8ClampedArray.from(grid.pixels) };
 };
 
 export const getColors = async (fetch: PageLoad['fetch']): Promise<ColorsPalette | null> => {
