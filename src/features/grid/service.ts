@@ -41,7 +41,6 @@ export const setPixel = async ({ offset, r, g, b, a }: GridPixelData) => {
 		const data = await response.json();
 
 		if (!response.ok) {
-			console.log(data);
 			addNotification({
 				message: data.error.cooldown_in_ms
 					? `${data.error.message}: ${data.error.cooldown_in_ms / 1000}s`

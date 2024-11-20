@@ -31,14 +31,16 @@
 			selectedPattern = { [value]: patternData };
 		}
 
-		console.log(selectedPattern);
 		mainGridSettingsDialog?.close();
 	};
 
 	const handleModeChange = (event: Event) => {
 		const target = event.target as HTMLInputElement;
-		console.log(target.value);
-		if (target.value !== 'pixel' || !selectedPattern) {
+		if (target.value !== 'pixel') {
+			selectedPattern = null;
+			showCursorPosition = false;
+		}
+		if (target.value !== 'pixel') {
 			selectedPattern = null;
 			showCursorPosition = false;
 		}
@@ -134,6 +136,9 @@
 <button
 	class="flex h-10 w-full items-center justify-center bg-gray-700 text-sm font-medium text-white hover:bg-gray-600 active:bg-gray-800"
 	onclick={() => {
+		if (!selectedPattern) {
+			selectedMode = 'pixel';
+		}
 		mainGridSettingsDialog?.close();
 	}}
 >
