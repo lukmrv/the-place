@@ -18,6 +18,7 @@
 	import { colorsStore } from '../../../stores/colors-store';
 	import { browser } from '$app/environment';
 	import type { ResponseGridPatternCoordinate } from '../../patterns/types';
+	import { challengeStore } from '../../../stores/challenge-store';
 
 	const STORAGE_KEY_TRANSFORM = 'grid_transform';
 	const STORAGE_KEY_ZOOM = 'grid_zoom';
@@ -28,6 +29,9 @@
 	const height = gridState?.grid.height ?? 0;
 
 	const pixels = gridState?.pixels ?? generateWhiteUnit8ClampedArray(width, height);
+
+	const challenge = challengeStore.get();
+	console.log('challenge', challenge);
 
 	// svelte-ignore non_reactive_update
 	let canvas: HTMLCanvasElement;
