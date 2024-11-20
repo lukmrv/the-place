@@ -14,8 +14,8 @@
 	// store state initialized in loader
 	const user = userStore.get();
 
-	const DEFAULT_GRID_WIDTH = 450;
-	const DEFAULT_GRID_HEIGHT = 250;
+	const DEFAULT_GRID_WIDTH = 250;
+	const DEFAULT_GRID_HEIGHT = 125;
 </script>
 
 <svelte:head>

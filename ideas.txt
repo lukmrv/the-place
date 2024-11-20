@@ -35,3 +35,11 @@ second challenge set 3 pixels from a pool
 third challenge set 5 pixels from a pool
     reward: pattern creation
 
+
+Grid loading animation:
+- white pixels
+- 1% of pixels are updated with random colors
+- repeat
+
+Different colors palettes  for each day.
+On load  show today's palette.

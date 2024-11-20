@@ -48,8 +48,13 @@
 	};
 
 	const savePattern = () => {
+		saving = true;
 		const pattern = patternRecorder.savePattern();
-		console.log('Recorded Pattern:', pattern);
+		if (pattern) {
+			console.log('Recorded Pattern:', pattern);
+			// Here you can dispatch an event or call a service to save the pattern
+		}
+		saving = false;
 		dialog?.close();
 	};
 

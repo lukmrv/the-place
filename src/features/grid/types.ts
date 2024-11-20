@@ -1,7 +1,9 @@
-export interface Coordinate {
+export type InsertMode = 'pixel' | 'letter' | 'pattern';
+
+export type Coordinate = {
 	x: number;
 	y: number;
-}
+};
 
 export type Grid = {
 	id: string;

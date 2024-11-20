@@ -25,3 +25,5 @@ export const checkColorEquality = (color1: Color, color2: Color) =>
 	color1[1] === color2[1] &&
 	color1[2] === color2[2] &&
 	color1[3] === color2[3];
+
+export const lerp = (start: number, t: number) => start * (1 - t) * (1 - t);

@@ -7,7 +7,7 @@
 	let visibleNotifications = $derived($notifications.slice(-maxNotifications));
 </script>
 
-<div class="fixed bottom-4 left-4 z-50 flex flex-col gap-2">
+<div class="fixed bottom-4 left-4 z-50 flex flex-col items-start gap-2">
 	{#each visibleNotifications as notification (notification.id)}
 		<Notification {...notification} />
 	{/each}

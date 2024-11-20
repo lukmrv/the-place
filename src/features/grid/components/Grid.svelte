@@ -3,16 +3,21 @@
 	import { setPattern, setPixel } from '../service';
 
 	import { webSocketManager } from '../../../websocket-manager';
-	import type { Color, Coordinate } from '../types';
+	import type { Color, Coordinate, InsertMode } from '../types';
 	import ColorOption from './ColorOption.svelte';
-	import { generateWhiteUnit8ClampedArray, getHoveredPixelColor } from '../utils';
+	import {
+		checkColorEquality,
+		generateWhiteUnit8ClampedArray,
+		getHoveredPixelColor,
+		lerp
+	} from '../utils';
 	import Modal from '../../../components/Modal.svelte';
 	import Button from '../../../components/Button.svelte';
 	import Settings from './Settings.svelte';
 	import type { LayoutData } from '../../../routes/$types';
-	import { patternsStore } from '../../../stores/patterns-store';
 	import { colorsStore } from '../../../stores/colors-store';
 	import { browser } from '$app/environment';
+	import type { ResponseGridPatternCoordinate } from '../../patterns/types';
 
 	const STORAGE_KEY_TRANSFORM = 'grid_transform';
 	const STORAGE_KEY_ZOOM = 'grid_zoom';
@@ -25,9 +30,8 @@
 	const pixels = gridState?.pixels ?? generateWhiteUnit8ClampedArray(width, height);
 
 	// svelte-ignore non_reactive_update
-	let rect: DOMRect;
-	// svelte-ignore non_reactive_update
 	let canvas: HTMLCanvasElement;
+	let rect = $state<DOMRect | null>(null);
 	let context: CanvasRenderingContext2D;
 	let staticImageData: ImageData;
 	let dynamicImageData: ImageData;
@@ -36,7 +40,7 @@
 
 	let ws: WebSocket;
 	const maxZoom = 30;
-	const minZoom = 1.4;
+	const minZoom = 0.4;
 	let isDragging = false;
 	let dragThreshold: Coordinate | null = null;
 
@@ -63,13 +67,11 @@
 		})()
 	);
 	let selectedColor = $state(colorsPalette['red'] as Color);
-
-	let selectedPattern = $state('pixel');
+	let selectedMode = $state<InsertMode>('pixel');
+	let selectedPattern = $state<Record<string, ResponseGridPatternCoordinate[]> | null>(null);
 	let saving = $state(false);
 	let cursorPosition = $state<{ x: number; y: number } | null>(null);
 	let showCursorPosition = $state(false);
-
-	const patterns = patternsStore.get();
 
 	let animationFrameId: number | null = null;
 	let pendingMove: MouseEvent | null = null;
@@ -199,8 +201,13 @@
 
 		const newDynamicData = new Uint8ClampedArray(width * height * 4);
 
-		const pattern = patterns[selectedPattern]!;
-		for (const { x: dx, y: dy, r, g, b, a } of pattern) {
+		const pattern = Object.values(selectedPattern ?? {})[0]!;
+
+		for (let { x: dx, y: dy, r, g, b, a } of pattern) {
+			// TODO - change variable color for patterns
+			if (selectedMode === 'letter') {
+				[r, g, b, a] = selectedColor;
+			}
 			const x = centerX + dx;
 			const y = centerY + dy;
 
@@ -266,13 +273,13 @@
 		if (animationFrameId !== null) return;
 
 		animationFrameId = requestAnimationFrame(
-			selectedPattern === 'pixel' ? renderPixelFrame : renderPatternFrame
+			selectedMode === 'pixel' ? renderPixelFrame : renderPatternFrame
 		);
 	};
 
 	const handleClick = async (e: MouseEvent) => {
 		saving = true;
-		if (selectedPattern === 'pixel') {
+		if (selectedMode === 'pixel') {
 			await savePixel(e);
 		} else {
 			await savePattern(e);
@@ -305,12 +312,16 @@
 		const centerX = offset % width;
 		const centerY = Math.floor(offset / width);
 
-		const pattern = patterns[selectedPattern]!;
+		const pattern = Object.values(selectedPattern ?? {})[0]!;
 		const originalColors: { offset: number; color: Color }[] = [];
 		const pixelsToUpdate: { offset: number; r: number; g: number; b: number; a: number }[] = [];
 
 		for (let i = 0; i < pattern.length; i++) {
-			const { x: dx, y: dy, r, g, b, a } = pattern[i];
+			let { x: dx, y: dy, r, g, b, a } = pattern[i];
+			// TODO - change variable color for patterns
+			if (selectedMode === 'letter') {
+				[r, g, b, a] = selectedColor;
+			}
 			const x = centerX + dx;
 			const y = centerY + dy;
 
@@ -358,6 +369,48 @@
 	const handleMouseUp = () => {
 		localStorage.setItem(STORAGE_KEY_TRANSFORM, JSON.stringify(transform));
 	};
+
+	const isGridOffscreen = () => {
+		if (!rect) return false;
+		const viewportWidth = rect.width;
+		const viewportHeight = rect.height;
+		const scaledGridWidth = width * zoom;
+		const scaledGridHeight = height * zoom;
+
+		// Check if any part of the grid is outside the viewport
+		return (
+			Math.abs(transform.x) > 0 ||
+			Math.abs(transform.y) > 0 ||
+			scaledGridWidth > viewportWidth ||
+			scaledGridHeight > viewportHeight
+		);
+	};
+
+	const centerGrid = () => {
+		const duration = 500; // Animation duration in ms
+		const startX = transform.x;
+		const startY = transform.y;
+		const startTime = Date.now();
+
+		let animationFrameId: number | null = null;
+
+		const animate = () => {
+			const elapsed = Date.now() - startTime;
+			const t = Math.min(elapsed / duration, 1);
+
+			transform.x = lerp(startX, t);
+			transform.y = lerp(startY, t);
+
+			if (t < 1) {
+				animationFrameId = requestAnimationFrame(animate);
+			} else {
+				cancelAnimationFrame(animationFrameId!);
+				localStorage.setItem(STORAGE_KEY_TRANSFORM, JSON.stringify(transform));
+			}
+		};
+
+		requestAnimationFrame(animate);
+	};
 </script>
 
 <!-- svelte-ignore element_invalid_self_closing_tag -->
@@ -389,22 +442,28 @@
 		{#if showCursorPosition && cursorPosition}
 			<div
 				class="pointer-events-none absolute z-20 w-16 rounded bg-black/25 px-2 py-1 text-center text-xs text-white"
-				style="left: {rect?.left + cursorPosition.x * zoom - 70}px; top: {rect?.top +
-					cursorPosition.y * zoom -
-					26}px"
+				style="left: {rect?.left ? rect.left + cursorPosition.x * zoom - 70 : 0}px; top: {rect?.top
+					? rect.top + cursorPosition.y * zoom - 26
+					: 0}px"
 			>
 				{cursorPosition.x}, {cursorPosition.y}
 			</div>
 		{/if}
 
-		<div class="absolute bottom-4 z-10 flex gap-2 border-2 border-gray-300 bg-white p-2">
-			{#each Object.keys(colorsPalette) as (keyof typeof colorsPalette)[] as colorOption}
-				<ColorOption
-					onclick={() => setColor(colorsPalette[colorOption])}
-					selected={selectedColor === colorsPalette[colorOption]}
-					color={colorsPalette[colorOption]}
-				/>
-			{/each}
+		<div class="absolute bottom-4 z-10 flex items-center gap-2">
+			<div class="flex gap-2 border-2 border-gray-300 bg-white p-2">
+				{#each Object.keys(colorsPalette) as (keyof typeof colorsPalette)[] as colorOption}
+					<ColorOption
+						onclick={() => setColor(colorsPalette[colorOption])}
+						selected={checkColorEquality(selectedColor, colorsPalette[colorOption])}
+						color={colorsPalette[colorOption]}
+					/>
+				{/each}
+			</div>
+
+			{#if isGridOffscreen()}
+				<Button onclick={centerGrid} class="border-2 border-gray-300">center</Button>
+			{/if}
 		</div>
 	</div>
 {:else}
@@ -416,7 +475,12 @@
 >
 <Modal bind:dialog={mainGridSettingsDialog}>
 	{#snippet header()}Settings{/snippet}
-	<Settings bind:showCursorPosition bind:selectedPattern {mainGridSettingsDialog} />
+	<Settings
+		bind:showCursorPosition
+		bind:selectedMode
+		bind:selectedPattern
+		{mainGridSettingsDialog}
+	/>
 </Modal>
 
 <style>

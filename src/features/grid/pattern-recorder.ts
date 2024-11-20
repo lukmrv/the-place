@@ -5,8 +5,8 @@ import type { GridPixelData } from './types';
 // I want to add eraser separately, and placing a white pixel should be highlighted somehow
 
 // 4, 8, 12
-export const width = 24;
-export const height = 24;
+export const width = 5;
+export const height = 5;
 export const scaleFactor = (() => {
 	const targetGridSize = 320; // Total grid width/height in pixels
 
@@ -18,40 +18,40 @@ export const scaleFactor = (() => {
 })();
 
 export class PatternRecorder {
-	private pattern: GridPixelData[] = [];
-	private originOffset: number | null = null;
+	private pattern: Array<{ x: number; y: number; r: number; g: number; b: number; a: number }> = [];
+	private firstPixel: { x: number; y: number } | null = null;
+
+	addPixel({ offset, color }: { offset: number; color: number[] }) {
+		// Convert offset to x,y coordinates
+		const y = Math.floor(offset / width);
+		const x = offset % width;
+
+		// If this is the first pixel, store its position as reference
+		if (!this.firstPixel) {
+			this.firstPixel = { x, y };
+		}
+
+		// Calculate relative position to first pixel
+		const relativeX = x - this.firstPixel.x;
+		const relativeY = y - this.firstPixel.y;
+
+		this.pattern.push({
+			x: relativeX,
+			y: relativeY,
+			r: color[0],
+			g: color[1],
+			b: color[2],
+			a: color[3]
+		});
+	}
+
+	savePattern() {
+		if (this.pattern.length === 0) return null;
+		return this.pattern;
+	}
 
 	clearPattern() {
 		this.pattern = [];
-		this.originOffset = null;
-	}
-
-	savePattern(): GridPixelData[] {
-		const finalPattern = this.pattern;
-		return finalPattern;
-	}
-
-	addPixel({ offset, color }: { offset: number; color: number[] }) {
-		if (this.originOffset === null) {
-			this.originOffset = offset;
-			this.pattern.push({ offset: 0, r: 0, g: 0, b: 0, a: 0 });
-			return;
-		}
-
-		const isWhite = checkColorEquality(color, [255, 255, 255, 255]);
-
-		// If pixel is white, remove any existing pixel at this position
-		if (isWhite) {
-			this.pattern = this.pattern.filter((p) => p.offset !== offset);
-			return;
-		}
-
-		// Remove any existing pixel at these coordinates before adding the new one
-		this.pattern = this.pattern.filter((p) => p.offset !== offset);
-		this.pattern.push({ offset, r: color[0], g: color[1], b: color[2], a: color[3] });
-	}
-
-	getCurrentPattern(): GridPixelData[] {
-		return this.pattern;
+		this.firstPixel = null;
 	}
 }
